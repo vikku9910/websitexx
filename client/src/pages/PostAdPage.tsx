@@ -3,10 +3,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useRef } from "react";
+import { AlertCircle } from "lucide-react";
 
 // Maximum file size: 5MB
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+const MIN_PHOTOS = 2;
+const MAX_PHOTOS = 5;
 
 const adSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -47,6 +50,21 @@ export default function PostAdPage() {
     const files = event.target.files;
     if (!files || files.length === 0) return;
     
+    // Validate file count
+    if (files.length < MIN_PHOTOS || files.length > MAX_PHOTOS) {
+      toast({
+        title: "Invalid file count",
+        description: `Please select between ${MIN_PHOTOS} and ${MAX_PHOTOS} photos`,
+        variant: "destructive"
+      });
+      
+      // Reset the file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+      return;
+    }
+    
     setSelectedFiles(files);
     
     // Create preview URLs for selected images
@@ -61,13 +79,37 @@ export default function PostAdPage() {
     setPreviewUrls(newPreviewUrls);
   };
 
+  // State for tracking error state
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  
   const onSubmit = async (data: AdFormValues) => {
     try {
+      setSubmitError(null); // Reset error state
+      
       // Use the selected files from state instead of relying on form data
       if (!selectedFiles || selectedFiles.length === 0) {
         toast({
           title: "Error",
           description: "Please upload at least one photo",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Validate minimum and maximum photo requirements
+      if (selectedFiles.length < MIN_PHOTOS) {
+        toast({
+          title: "Error",
+          description: `Please upload at least ${MIN_PHOTOS} photos`,
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      if (selectedFiles.length > MAX_PHOTOS) {
+        toast({
+          title: "Error",
+          description: `Please upload no more than ${MAX_PHOTOS} photos`,
           variant: "destructive"
         });
         return;
@@ -136,9 +178,14 @@ export default function PostAdPage() {
       
     } catch (error) {
       console.error('Error posting ad:', error);
+      
+      // Set the error message for the UI
+      const errorMessage = error instanceof Error ? error.message : "Failed to post ad. Please try again.";
+      setSubmitError(errorMessage);
+      
       toast({
         title: "Error posting ad",
-        description: error instanceof Error ? error.message : "An unknown error occurred",
+        description: errorMessage,
         variant: "destructive"
       });
     }
@@ -148,6 +195,18 @@ export default function PostAdPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-2xl mx-auto">
         <h1 className="text-2xl font-semibold text-gray-800 mb-6 text-center">Post Your Ad</h1>
+        
+        {/* Error Banner */}
+        {submitError && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4 flex items-start">
+            <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
+            <div>
+              <h3 className="font-semibold">Error posting ad</h3>
+              <p className="text-sm">{submitError}</p>
+              <p className="text-sm mt-1">Please try again or check your connection.</p>
+            </div>
+          </div>
+        )}
         
         <form 
           className="bg-white rounded-md shadow p-6"
@@ -259,7 +318,7 @@ export default function PostAdPage() {
           
           <div className="mb-6">
             <label htmlFor="photos" className="block text-gray-700 text-sm mb-2">
-              Photos* <span className="text-xs text-gray-500">(Upload at least one photo)</span>
+              Photos* <span className="text-xs text-gray-500">(Upload {MIN_PHOTOS}-{MAX_PHOTOS} photos)</span>
             </label>
             <div className="relative">
               <input
@@ -272,7 +331,7 @@ export default function PostAdPage() {
                 ref={fileInputRef}
               />
               {previewUrls.length === 0 && (
-                <p className="text-red-500 text-xs mt-1">At least one photo is required</p>
+                <p className="text-red-500 text-xs mt-1">{MIN_PHOTOS}-{MAX_PHOTOS} photos are required</p>
               )}
             </div>
             
