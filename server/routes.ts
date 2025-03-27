@@ -13,6 +13,14 @@ const isAuthenticated = (req: Request, res: any, next: any) => {
   res.status(401).json({ error: "Unauthorized" });
 };
 
+// Middleware to check if user is an admin
+const isAdmin = (req: Request, res: any, next: any) => {
+  if (req.isAuthenticated() && req.user && req.user.isAdmin) {
+    return next();
+  }
+  res.status(403).json({ error: "Forbidden: Admin access required" });
+};
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes
   setupAuth(app);
@@ -162,7 +170,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if the ad belongs to the current user
-      if (ad.userId !== userId) {
+      if (ad.userId !== userId && !req.user!.isAdmin) {
         return res.status(403).json({ error: "Unauthorized to delete this ad" });
       }
       
@@ -175,6 +183,121 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting ad:", error);
       res.status(500).json({ error: "Failed to delete ad" });
+    }
+  });
+
+  // ADMIN ROUTES
+  
+  // Create first admin (for initial setup)
+  app.post("/api/create-first-admin", async (req, res) => {
+    try {
+      // Check if there are any users with admin rights
+      const users = await storage.getAllUsers();
+      const admins = users.filter(user => user.isAdmin);
+      
+      // If there are already admins, don't allow this route to be used
+      if (admins.length > 0) {
+        return res.status(403).json({ error: "Admin users already exist" });
+      }
+      
+      const { userId } = req.body;
+      if (!userId) {
+        return res.status(400).json({ error: "User ID is required" });
+      }
+      
+      const updatedUser = await storage.makeUserAdmin(parseInt(userId));
+      if (!updatedUser) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error creating first admin:", error);
+      res.status(500).json({ error: "Failed to create admin" });
+    }
+  });
+  
+  // Get all users
+  app.get("/api/admin/users", isAdmin, async (_req, res) => {
+    try {
+      const users = await storage.getAllUsers();
+      res.json(users);
+    } catch (error) {
+      console.error("Error getting all users:", error);
+      res.status(500).json({ error: "Failed to get users" });
+    }
+  });
+  
+  // Get all ads for admin
+  app.get("/api/admin/ads", isAdmin, async (_req, res) => {
+    try {
+      const ads = await storage.getAllAds();
+      res.json(ads);
+    } catch (error) {
+      console.error("Error getting all ads:", error);
+      res.status(500).json({ error: "Failed to get ads" });
+    }
+  });
+  
+  // Make user an admin
+  app.post("/api/admin/users/:id/make-admin", isAdmin, async (req, res) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ error: "Invalid user ID" });
+    }
+    
+    try {
+      const updatedUser = await storage.makeUserAdmin(id);
+      if (!updatedUser) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error making user admin:", error);
+      res.status(500).json({ error: "Failed to update user" });
+    }
+  });
+  
+  // Verify an ad
+  app.post("/api/admin/ads/:id/verify", isAdmin, async (req, res) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ error: "Invalid ad ID" });
+    }
+    
+    try {
+      const updatedAd = await storage.verifyAd(id);
+      if (!updatedAd) {
+        return res.status(404).json({ error: "Ad not found" });
+      }
+      res.json(updatedAd);
+    } catch (error) {
+      console.error("Error verifying ad:", error);
+      res.status(500).json({ error: "Failed to verify ad" });
+    }
+  });
+  
+  // Toggle ad active status
+  app.post("/api/admin/ads/:id/toggle-active", isAdmin, async (req, res) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ error: "Invalid ad ID" });
+    }
+    
+    const { isActive } = req.body;
+    if (typeof isActive !== "boolean") {
+      return res.status(400).json({ error: "isActive must be a boolean" });
+    }
+    
+    try {
+      const updatedAd = await storage.toggleAdActive(id, isActive);
+      if (!updatedAd) {
+        return res.status(404).json({ error: "Ad not found" });
+      }
+      res.json(updatedAd);
+    } catch (error) {
+      console.error("Error toggling ad active status:", error);
+      res.status(500).json({ error: "Failed to update ad" });
     }
   });
 

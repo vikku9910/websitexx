@@ -9,6 +9,7 @@ export const users = pgTable("users", {
   firstName: text("first_name"),
   lastName: text("last_name"),
   mobileNumber: text("mobile_number"),
+  isAdmin: boolean("is_admin").default(false),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({

@@ -10,15 +10,20 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  makeUserAdmin(userId: number): Promise<User | undefined>;
+  getAllUsers(): Promise<User[]>;
   
   // Ad operations
   getAd(id: number): Promise<Ad | undefined>;
   getAdsByLocation(location: string): Promise<Ad[]>;
   getAdsByUserId(userId: number): Promise<Ad[]>;
+  getAllAds(): Promise<Ad[]>;
   createAd(ad: InsertAd): Promise<Ad>;
   updateAd(id: number, ad: Partial<Ad>): Promise<Ad | undefined>;
   deleteAd(id: number): Promise<boolean>;
   incrementAdView(id: number): Promise<void>;
+  verifyAd(id: number): Promise<Ad | undefined>;
+  toggleAdActive(id: number, isActive: boolean): Promise<Ad | undefined>;
   
   sessionStore: session.Store;
 }
@@ -59,10 +64,24 @@ export class MemStorage implements IStorage {
       password: insertUser.password,
       firstName: insertUser.firstName || null,
       lastName: insertUser.lastName || null,
-      mobileNumber: insertUser.mobileNumber || null
+      mobileNumber: insertUser.mobileNumber || null,
+      isAdmin: false
     } as User;
     this.users.set(id, user);
     return user;
+  }
+  
+  async makeUserAdmin(userId: number): Promise<User | undefined> {
+    const user = this.users.get(userId);
+    if (!user) return undefined;
+    
+    const updatedUser = { ...user, isAdmin: true };
+    this.users.set(userId, updatedUser);
+    return updatedUser;
+  }
+  
+  async getAllUsers(): Promise<User[]> {
+    return Array.from(this.users.values());
   }
 
   // Ad operations
@@ -116,6 +135,28 @@ export class MemStorage implements IStorage {
       ad.viewCount += 1;
       this.ads.set(id, ad);
     }
+  }
+  
+  async getAllAds(): Promise<Ad[]> {
+    return Array.from(this.ads.values());
+  }
+  
+  async verifyAd(id: number): Promise<Ad | undefined> {
+    const ad = this.ads.get(id);
+    if (!ad) return undefined;
+    
+    const updatedAd = { ...ad, isVerified: true };
+    this.ads.set(id, updatedAd);
+    return updatedAd;
+  }
+  
+  async toggleAdActive(id: number, isActive: boolean): Promise<Ad | undefined> {
+    const ad = this.ads.get(id);
+    if (!ad) return undefined;
+    
+    const updatedAd = { ...ad, isActive };
+    this.ads.set(id, updatedAd);
+    return updatedAd;
   }
 }
 

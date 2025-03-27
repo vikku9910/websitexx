@@ -13,9 +13,11 @@ import ContactPage from "@/pages/ContactPage";
 import TermsPage from "@/pages/TermsPage";
 import PrivacyPage from "@/pages/PrivacyPage";
 import SitemapPage from "@/pages/SitemapPage";
+import AdminPage from "@/pages/AdminPage";
 import Layout from "@/components/Layout";
 import { AuthProvider } from "@/hooks/use-auth";
-import { ProtectedRoute } from "@/lib/protected-route";
+import { ProtectedRoute, AdminRoute } from "@/lib/protected-route";
+import FirstAdminSetup from "@/components/FirstAdminSetup";
 
 function Router() {
   return (
@@ -31,6 +33,7 @@ function Router() {
         <Route path="/terms" component={TermsPage} />
         <Route path="/privacy" component={PrivacyPage} />
         <Route path="/sitemap" component={SitemapPage} />
+        <AdminRoute path="/admin" component={AdminPage} />
         <Route component={NotFound} />
       </Switch>
     </Layout>
@@ -42,6 +45,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <Router />
+        <FirstAdminSetup />
         <Toaster />
       </AuthProvider>
     </QueryClientProvider>
