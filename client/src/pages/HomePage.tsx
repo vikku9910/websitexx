@@ -1,10 +1,17 @@
 import { useState } from "react";
 import LocationGrid from "@/components/LocationGrid";
 import CountryGrid from "@/components/CountryGrid";
+import { useLocation } from "wouter";
 
 export default function HomePage() {
   const popularCities = ["Delhi", "Mumbai", "Kolkata", "Chennai", "Pune", "Jaipur"];
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
+  const [, navigate] = useLocation();
+
+  const handleCityClick = (city: string) => {
+    // Instead of just selecting, we'll navigate to the location page
+    navigate(`/location/${encodeURIComponent(city)}`);
+  };
 
   return (
     <div>
@@ -29,8 +36,8 @@ export default function HomePage() {
             {popularCities.map((city, index) => (
               <button 
                 key={index}
-                className={`px-3 py-1 text-sm rounded ${selectedCity === city ? 'bg-[#3a8c5c] text-white' : 'bg-[#4ebb78] text-white'}`}
-                onClick={() => setSelectedCity(city === selectedCity ? null : city)}
+                className="px-3 py-1 text-sm rounded bg-[#4ebb78] text-white hover:bg-[#3a8c5c] transition-colors"
+                onClick={() => handleCityClick(city)}
               >
                 {city}
               </button>
@@ -38,7 +45,7 @@ export default function HomePage() {
           </div>
           
           {/* Location Grid */}
-          <LocationGrid />
+          <LocationGrid onLocationClick={handleCityClick} />
         </div>
         
         {/* Platform Description */}

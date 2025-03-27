@@ -6,6 +6,8 @@ import NotFound from "@/pages/not-found";
 import HomePage from "@/pages/HomePage";
 import PostAdPage from "@/pages/PostAdPage";
 import AuthPage from "@/pages/auth-page";
+import LocationPage from "@/pages/LocationPage";
+import AdDetailPage from "@/pages/AdDetailPage";
 import Layout from "@/components/Layout";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/lib/protected-route";
@@ -17,6 +19,8 @@ function Router() {
         <Route path="/" component={HomePage} />
         <Route path="/auth" component={AuthPage} />
         <ProtectedRoute path="/post-ad" component={PostAdPage} />
+        <Route path="/location/:location" component={LocationPage} />
+        <Route path="/ad/:id" component={AdDetailPage} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

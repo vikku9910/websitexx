@@ -71,25 +71,75 @@ export default function PostAdPage() {
     setPreviewUrls(newPreviewUrls);
   };
 
-  const onSubmit = (data: AdFormValues) => {
-    // In a real application, this would make an API call to save the ad with photos
-    console.log("Ad data:", data);
-    console.log("Photos:", Array.from(data.photos));
-    
-    toast({
-      title: "Ad posted successfully",
-      description: "Your ad has been posted successfully.",
-    });
-    
-    // Clean up preview URLs
-    previewUrls.forEach(url => URL.revokeObjectURL(url));
-    setPreviewUrls([]);
-    setSelectedFiles(null);
-    
-    // Reset the form after successful submission
-    reset();
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+  const onSubmit = async (data: AdFormValues) => {
+    try {
+      // Convert files to base64 strings for storage
+      const photoPromises = Array.from(data.photos).map(file => {
+        return new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            resolve(reader.result as string);
+          };
+          reader.readAsDataURL(file);
+        });
+      });
+      
+      const photoUrls = await Promise.all(photoPromises);
+      
+      // Create ad submission data
+      const adData = {
+        title: data.title,
+        description: data.description,
+        location: data.location,
+        category: data.category,
+        contactNumber: data.contactNumber,
+        contactEmail: data.contactEmail,
+        photoUrls,
+        age: 25 // Default age value
+      };
+      
+      // Make API call to save the ad
+      const response = await fetch('/api/ads', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(adData),
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to post ad. Please try again.');
+      }
+      
+      const newAd = await response.json();
+      
+      toast({
+        title: "Ad posted successfully",
+        description: "Your ad has been posted successfully.",
+      });
+      
+      // Clean up preview URLs
+      previewUrls.forEach(url => URL.revokeObjectURL(url));
+      setPreviewUrls([]);
+      setSelectedFiles(null);
+      
+      // Reset the form after successful submission
+      reset();
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+      
+      // Redirect to the new ad page
+      window.location.href = `/ad/${newAd.id}`;
+      
+    } catch (error) {
+      console.error('Error posting ad:', error);
+      toast({
+        title: "Error posting ad",
+        description: error instanceof Error ? error.message : "An unknown error occurred",
+        variant: "destructive"
+      });
     }
   };
 

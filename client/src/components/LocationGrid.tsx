@@ -1,17 +1,10 @@
-import { useState } from "react";
 import { locations } from "@/data/locations";
 
-export default function LocationGrid() {
-  const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
+interface LocationGridProps {
+  onLocationClick?: (location: string) => void;
+}
 
-  const toggleLocation = (location: string) => {
-    if (selectedLocations.includes(location)) {
-      setSelectedLocations(selectedLocations.filter(loc => loc !== location));
-    } else {
-      setSelectedLocations([...selectedLocations, location]);
-    }
-  };
-
+export default function LocationGrid({ onLocationClick }: LocationGridProps) {
   // Create columns from the locations array
   const columns = [
     locations.slice(0, 10),
@@ -25,20 +18,19 @@ export default function LocationGrid() {
       {columns.map((column, colIndex) => (
         <div key={colIndex} className="border border-gray-200 p-4 rounded">
           {column.map((location, i) => (
-            <div key={i} className="flex items-center mb-2 last:mb-0">
-              <input 
-                type="checkbox" 
-                id={`loc-${location.id}`} 
-                className="mr-2"
-                checked={selectedLocations.includes(location.name)}
-                onChange={() => toggleLocation(location.name)}
-              />
-              <label 
-                htmlFor={`loc-${location.id}`} 
-                className="text-gray-600 text-sm cursor-pointer"
+            <div key={i} className="mb-2 last:mb-0">
+              <a 
+                href={`/location/${encodeURIComponent(location.name)}`}
+                className="text-gray-600 text-sm hover:text-[#4ebb78] hover:underline cursor-pointer"
+                onClick={(e) => {
+                  if (onLocationClick) {
+                    e.preventDefault();
+                    onLocationClick(location.name);
+                  }
+                }}
               >
                 {location.name}
-              </label>
+              </a>
             </div>
           ))}
         </div>

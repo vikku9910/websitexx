@@ -1,4 +1,4 @@
-import { users, type User, type InsertUser } from "@shared/schema";
+import { users, type User, type InsertUser, ads, type Ad, type InsertAd } from "@shared/schema";
 import createMemoryStore from "memorystore";
 import session from "express-session";
 
@@ -6,25 +6,41 @@ const MemoryStore = createMemoryStore(session);
 
 // Storage interface
 export interface IStorage {
+  // User operations
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  
+  // Ad operations
+  getAd(id: number): Promise<Ad | undefined>;
+  getAdsByLocation(location: string): Promise<Ad[]>;
+  getAdsByUserId(userId: number): Promise<Ad[]>;
+  createAd(ad: InsertAd): Promise<Ad>;
+  updateAd(id: number, ad: Partial<Ad>): Promise<Ad | undefined>;
+  deleteAd(id: number): Promise<boolean>;
+  incrementAdView(id: number): Promise<void>;
+  
   sessionStore: session.Store;
 }
 
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
-  currentId: number;
+  private ads: Map<number, Ad>;
+  userCurrentId: number;
+  adCurrentId: number;
   sessionStore: session.Store;
 
   constructor() {
     this.users = new Map();
-    this.currentId = 1;
+    this.ads = new Map();
+    this.userCurrentId = 1;
+    this.adCurrentId = 1;
     this.sessionStore = new MemoryStore({
       checkPeriod: 86400000,
     });
   }
 
+  // User operations
   async getUser(id: number): Promise<User | undefined> {
     return this.users.get(id);
   }
@@ -36,7 +52,7 @@ export class MemStorage implements IStorage {
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.currentId++;
+    const id = this.userCurrentId++;
     const user = { 
       id, 
       username: insertUser.username,
@@ -47,6 +63,59 @@ export class MemStorage implements IStorage {
     } as User;
     this.users.set(id, user);
     return user;
+  }
+
+  // Ad operations
+  async getAd(id: number): Promise<Ad | undefined> {
+    return this.ads.get(id);
+  }
+
+  async getAdsByLocation(location: string): Promise<Ad[]> {
+    return Array.from(this.ads.values()).filter(
+      (ad) => ad.location.toLowerCase() === location.toLowerCase() && ad.isActive
+    );
+  }
+
+  async getAdsByUserId(userId: number): Promise<Ad[]> {
+    return Array.from(this.ads.values()).filter(
+      (ad) => ad.userId === userId && ad.isActive
+    );
+  }
+
+  async createAd(insertAd: InsertAd): Promise<Ad> {
+    const id = this.adCurrentId++;
+    const ad: Ad = {
+      id,
+      ...insertAd,
+      createdAt: new Date(),
+      viewCount: 0,
+      isActive: true,
+      isVerified: false,
+      age: insertAd.age || null,
+    };
+    this.ads.set(id, ad);
+    return ad;
+  }
+
+  async updateAd(id: number, adUpdate: Partial<Ad>): Promise<Ad | undefined> {
+    const existingAd = this.ads.get(id);
+    if (!existingAd) return undefined;
+    
+    const updatedAd = { ...existingAd, ...adUpdate };
+    this.ads.set(id, updatedAd);
+    return updatedAd;
+  }
+
+  async deleteAd(id: number): Promise<boolean> {
+    return this.ads.delete(id);
+  }
+
+  async incrementAdView(id: number): Promise<void> {
+    const ad = this.ads.get(id);
+    if (ad && ad.viewCount !== null) {
+      ad.viewCount += 1;
+      this.ads.set(id, ad);
+    }
   }
 }
 
