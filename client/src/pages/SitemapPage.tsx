@@ -18,7 +18,7 @@ export default function SitemapPage() {
   const siteName = settings?.siteName || "Schloka";
   
   const { data: pageContent } = useQuery<PageContent>({
-    queryKey: ["/api/page-content", "sitemap"],
+    queryKey: ["/api/page-content/sitemap"],
   });
   
   // If there's custom content, display it above the sitemap
@@ -104,9 +104,6 @@ export default function SitemapPage() {
         </div>
       </div>
       <div className="mt-auto">
-        <div className="text-center text-gray-500 text-sm py-2">
-          <p className="mb-1">📧 support@{siteName.toLowerCase()}.com</p>
-        </div>
         <Footer />
       </div>
     </div>

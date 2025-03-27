@@ -331,7 +331,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Get page content
+  // Get all page content
+  app.get("/api/page-content", async (_req, res) => {
+    try {
+      const contents = await storage.getAllPageContents();
+      res.json(contents);
+    } catch (error) {
+      console.error("Error getting all page content:", error);
+      res.status(500).json({ error: "Failed to get page content" });
+    }
+  });
+
+  // Get specific page content
   app.get("/api/page-content/:page", async (req, res) => {
     const { page } = req.params;
     

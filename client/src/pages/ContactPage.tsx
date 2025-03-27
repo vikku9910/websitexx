@@ -10,7 +10,7 @@ export default function ContactPage() {
   const siteName = settings?.siteName || "Schloka";
   
   const { data: pageContent, isLoading } = useQuery<PageContent>({
-    queryKey: ["/api/page-content", "contact"],
+    queryKey: ["/api/page-content/contact"],
   });
   
   return (
@@ -23,9 +23,13 @@ export default function ContactPage() {
             <p className="text-gray-500 text-center py-8">Loading content...</p>
           ) : (
             <div className="text-gray-700 space-y-6">
-              {pageContent?.content.split('\n').map((paragraph, index) => (
-                <p key={index} className="text-center">{paragraph}</p>
-              ))}
+              {pageContent?.content ? (
+                pageContent.content.split('\n').map((paragraph, index) => (
+                  <p key={index} className="text-center">{paragraph}</p>
+                ))
+              ) : (
+                <p className="text-center">For any questions or assistance, please reach out to us.</p>
+              )}
             </div>
           )}
           

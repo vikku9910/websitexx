@@ -10,7 +10,7 @@ export default function PrivacyPage() {
   const siteName = settings?.siteName || "Schloka";
   
   const { data: pageContent, isLoading } = useQuery<PageContent>({
-    queryKey: ["/api/page-content", "privacy"],
+    queryKey: ["/api/page-content/privacy"],
   });
   
   return (
@@ -64,9 +64,6 @@ export default function PrivacyPage() {
         </div>
       </div>
       <div className="mt-auto">
-        <div className="text-center text-gray-500 text-sm py-2">
-          <p className="mb-1">📧 support@{siteName.toLowerCase()}.com</p>
-        </div>
         <Footer />
       </div>
     </div>

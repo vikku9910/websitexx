@@ -11,7 +11,7 @@ export default function TermsPage() {
   const currentYear = new Date().getFullYear();
   
   const { data: pageContent, isLoading } = useQuery<PageContent>({
-    queryKey: ["/api/page-content", "terms"],
+    queryKey: ["/api/page-content/terms"],
   });
   
   return (
@@ -59,9 +59,6 @@ export default function TermsPage() {
         </div>
       </div>
       <div className="mt-auto">
-        <div className="text-center text-gray-500 text-sm py-2">
-          <p className="mb-1">📧 support@{siteName.toLowerCase()}.com</p>
-        </div>
         <Footer />
       </div>
     </div>

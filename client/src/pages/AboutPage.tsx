@@ -10,7 +10,7 @@ export default function AboutPage() {
   const siteName = settings?.siteName || "Schloka";
   
   const { data: pageContent, isLoading } = useQuery<PageContent>({
-    queryKey: ["/api/page-content", "about"],
+    queryKey: ["/api/page-content/about"],
   });
   
   return (
@@ -24,18 +24,19 @@ export default function AboutPage() {
               <p className="text-gray-500">Loading content...</p>
             ) : (
               <div className="text-gray-700 space-y-4">
-                {pageContent?.content.split('\n').map((paragraph, index) => (
-                  <p key={index}>{paragraph}</p>
-                ))}
+                {pageContent?.content ? (
+                  pageContent.content.split('\n').map((paragraph, index) => (
+                    <p key={index}>{paragraph}</p>
+                  ))
+                ) : (
+                  <p>Welcome to {siteName}, your trusted classified ads platform.</p>
+                )}
               </div>
             )}
           </div>
         </div>
       </div>
       <div className="mt-auto">
-        <div className="text-center text-gray-500 text-sm py-2">
-          <p className="mb-1">📧 support@{siteName.toLowerCase()}.com</p>
-        </div>
         <Footer />
       </div>
     </div>
