@@ -111,10 +111,6 @@ export default function AdDetailPage() {
                 <Calendar className="h-4 w-4 mr-1" />
                 <span>{new Date(ad.createdAt).toLocaleDateString()}</span>
               </div>
-              
-              <div className="flex items-center text-gray-600">
-                <span>Views: {ad.viewCount || 0}</span>
-              </div>
             </div>
             
             {ad.isVerified && (
