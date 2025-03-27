@@ -10,6 +10,7 @@ export default function NotFound() {
   });
   
   const siteName = settings?.siteName || "Schloka";
+  const footerText = settings?.footerText || `© ${new Date().getFullYear()} ${siteName} - All Rights Reserved.`;
 
   return (
     <div className="container min-h-[70vh] flex items-center justify-center py-16">
@@ -39,7 +40,7 @@ export default function NotFound() {
           </div>
           
           <p className="text-center text-xs text-gray-500 mt-8">
-            &copy; {new Date().getFullYear()} {siteName} - All rights reserved
+            {footerText.replace(/\d{4}/g, new Date().getFullYear().toString())}
           </p>
         </CardContent>
       </Card>

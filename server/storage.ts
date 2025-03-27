@@ -58,8 +58,9 @@ export class MemStorage implements IStorage {
     this.adCurrentId = 1;
     this.pageContentCurrentId = 1;
     
-    // Set default site name
+    // Set default site name and footer text
     this.settings.set('siteName', 'Schloka');
+    this.settings.set('footerText', '© 2025 Schloka - Post Free Classifieds Ads. All Rights Reserved.');
     
     // Set default page contents
     const defaultPages = [

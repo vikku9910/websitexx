@@ -24,6 +24,7 @@ import { useToast } from "@/hooks/use-toast";
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState("users");
   const [siteName, setSiteName] = useState("Schloka");
+  const [footerText, setFooterText] = useState("© 2025 Schloka - Post Free Classifieds Ads. All Rights Reserved.");
   const [selectedPage, setSelectedPage] = useState("about");
   const [pageContent, setPageContent] = useState("");
   const { toast } = useToast();
@@ -45,10 +46,15 @@ export default function AdminPage() {
     enabled: activeTab === "settings",
   });
 
-  // Update siteName whenever settings are updated
+  // Update siteName and footerText whenever settings are updated
   useEffect(() => {
-    if (settings?.siteName) {
-      setSiteName(settings.siteName);
+    if (settings) {
+      if (settings.siteName) {
+        setSiteName(settings.siteName);
+      }
+      if (settings.footerText) {
+        setFooterText(settings.footerText);
+      }
     }
   }, [settings]);
 
@@ -164,6 +170,31 @@ export default function AdminPage() {
       toast({
         title: "Success",
         description: "Site name has been updated",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Update footer text mutation
+  const updateFooterTextMutation = useMutation({
+    mutationFn: async (newText: string) => {
+      const res = await apiRequest("POST", "/api/admin/site-settings", {
+        key: "footerText",
+        value: newText
+      });
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/site-settings"] });
+      toast({
+        title: "Success",
+        description: "Footer text has been updated",
       });
     },
     onError: (error: Error) => {
@@ -382,20 +413,50 @@ export default function AdminPage() {
                       placeholder="Enter site name"
                     />
                   </div>
+                  
+                  <div className="space-y-2">
+                    <label htmlFor="footerText" className="text-sm font-medium">
+                      Footer Text
+                    </label>
+                    <Input
+                      id="footerText"
+                      value={footerText}
+                      onChange={(e) => setFooterText(e.target.value)}
+                      placeholder="Enter footer text"
+                    />
+                    <p className="text-xs text-gray-500">
+                      Use {"{year}"} to include the current year. Example: © {"{year}"} {siteName} - All Rights Reserved.
+                    </p>
+                  </div>
                 </div>
               </CardContent>
-              <CardFooter>
+              <CardFooter className="flex flex-col space-y-3">
                 <Button 
                   onClick={() => updateSiteNameMutation.mutate(siteName)}
                   disabled={updateSiteNameMutation.isPending || (settings?.siteName === siteName)}
                   className="w-full"
                 >
                   {updateSiteNameMutation.isPending ? (
-                    "Saving..."
+                    "Saving Site Name..."
                   ) : (
                     <>
                       <Save className="h-4 w-4 mr-2" />
-                      Save Changes
+                      Save Site Name
+                    </>
+                  )}
+                </Button>
+                
+                <Button 
+                  onClick={() => updateFooterTextMutation.mutate(footerText)}
+                  disabled={updateFooterTextMutation.isPending || (settings?.footerText === footerText)}
+                  className="w-full"
+                >
+                  {updateFooterTextMutation.isPending ? (
+                    "Saving Footer Text..."
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      Save Footer Text
                     </>
                   )}
                 </Button>

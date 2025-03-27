@@ -9,6 +9,11 @@ export default function Footer() {
   const siteName = settings?.siteName || "Schloka";
   const currentYear = new Date().getFullYear();
   
+  // Use the custom footer text if available, otherwise construct a default one
+  const footerText = settings?.footerText 
+    ? settings.footerText.replace(/\d{4}/g, currentYear.toString()) // Replace any year with current year
+    : `© ${currentYear} ${siteName} - Post Free Classifieds Ads. All Rights Reserved.`;
+  
   return (
     <footer className="border-t border-gray-200 py-6">
       <div className="container mx-auto px-4">
@@ -33,7 +38,7 @@ export default function Footer() {
           </Link>
         </div>
         <div className="text-center text-gray-500 text-xs">
-          &copy; {currentYear} {siteName}. All rights reserved.
+          {footerText}
         </div>
       </div>
     </footer>
