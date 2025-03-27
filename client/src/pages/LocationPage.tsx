@@ -85,14 +85,17 @@ export default function LocationPage() {
         <div className="space-y-4">
           {ads.map((ad) => (
             <div key={ad.id} className="border border-gray-200 bg-amber-50 rounded-md p-4 hover:shadow-md transition-shadow">
-              <Link href={`/ad/${ad.id}`} className="flex gap-4">
+              <div className="flex gap-4">
+                {/* Image Thumbnail - Left Side */}
                 <div className="w-32 h-32 flex-shrink-0">
                   {ad.photoUrls && ad.photoUrls.length > 0 ? (
-                    <img 
-                      src={ad.photoUrls[0]} 
-                      alt={ad.title} 
-                      className="w-full h-full object-cover rounded-md"
-                    />
+                    <Link href={`/ad/${ad.id}`}>
+                      <img 
+                        src={ad.photoUrls[0]} 
+                        alt={ad.title} 
+                        className="w-full h-full object-cover rounded-md"
+                      />
+                    </Link>
                   ) : (
                     <div className="w-full h-full bg-gray-200 flex items-center justify-center rounded-md">
                       <span className="text-gray-400">No image</span>
@@ -100,23 +103,30 @@ export default function LocationPage() {
                   )}
                 </div>
                 
+                {/* Ad Info - Middle */}
                 <div className="flex-1 ml-1">
-                  <h2 className="text-base font-bold text-[#000000] hover:underline cursor-pointer">
-                    {ad.title}
-                  </h2>
+                  {/* Title - Clickable to open full profile */}
+                  <Link href={`/ad/${ad.id}`}>
+                    <h2 className="text-base font-bold text-[#000000] hover:underline cursor-pointer">
+                      {ad.title}
+                    </h2>
+                  </Link>
                   
+                  {/* Short Description - Only 20% */}
                   <p className="text-sm text-gray-700 mt-1">
-                    {ad.description && ad.description.length > 100 
-                      ? ad.description.substring(0, 100) + '...' 
+                    {ad.description && ad.description.length > 50 
+                      ? ad.description.substring(0, 50) + '...' 
                       : ad.description}
                   </p>
                   
+                  {/* Location & Age */}
                   <div className="flex items-center mt-2">
                     <span className="text-xs text-gray-700">
-                      {ad.location} • {ad.age ? `Age: ${ad.age}` : ''} • 
+                      {ad.location} {ad.age ? `• Age: ${ad.age}` : ''}
                     </span>
                   </div>
                   
+                  {/* Category & Verification Tags */}
                   <div className="flex items-center justify-between mt-2">
                     <div className="flex items-center">
                       <span className="text-xs px-1 py-0.5 rounded bg-green-100 text-green-800 mr-1">
@@ -129,17 +139,21 @@ export default function LocationPage() {
                       )}
                     </div>
                     
+                    {/* Contact Number */}
                     <div className="text-xs text-green-600 font-medium">
                       {ad.contactNumber}
                     </div>
                   </div>
                 </div>
                 
+                {/* WhatsApp & ID - Right Side */}
                 <div className="flex flex-col items-end justify-between gap-2">
                   <a 
                     href={`https://wa.me/${ad.contactNumber}`} 
                     className="flex items-center justify-center w-8 h-8"
                     onClick={(e) => e.stopPropagation()}
+                    target="_blank"
+                    rel="noopener noreferrer"
                   >
                     <img 
                       src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/1200px-WhatsApp.svg.png" 
@@ -152,7 +166,7 @@ export default function LocationPage() {
                     {ad.id}
                   </span>
                 </div>
-              </Link>
+              </div>
             </div>
           ))}
         </div>

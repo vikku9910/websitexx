@@ -2,12 +2,13 @@ import { useParams, Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Ad } from "@shared/schema";
 import { Loader2, Phone, MapPin, Calendar, MessageCircle } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function AdDetailPage() {
   const { id } = useParams();
   const adId = id ? parseInt(id) : 0;
   const [activeImage, setActiveImage] = useState(0);
+  const [similarAds, setSimilarAds] = useState<Ad[]>([]);
   
   const { data: ad, isLoading, error } = useQuery<Ad>({
     queryKey: ["/api/ads", adId],
@@ -20,6 +21,27 @@ export default function AdDetailPage() {
     },
     enabled: !!adId,
   });
+  
+  // Fetch similar ads based on location
+  useEffect(() => {
+    if (ad) {
+      const fetchSimilarAds = async () => {
+        try {
+          const response = await fetch(`/api/ads/location/${ad.location}`);
+          if (response.ok) {
+            const data = await response.json();
+            // Filter out the current ad and limit to 3 ads
+            const filtered = data.filter((a: Ad) => a.id !== adId).slice(0, 3);
+            setSimilarAds(filtered);
+          }
+        } catch (error) {
+          console.error("Failed to fetch similar ads:", error);
+        }
+      };
+      
+      fetchSimilarAds();
+    }
+  }, [ad, adId]);
 
   if (isLoading) {
     return (
@@ -55,6 +77,7 @@ export default function AdDetailPage() {
         <div className="flex flex-col md:flex-row">
           {/* Image Gallery */}
           <div className="w-full md:w-1/2 p-4">
+            {/* Main Image */}
             <div className="mb-4">
               {ad.photoUrls && ad.photoUrls.length > 0 ? (
                 <img 
@@ -71,7 +94,7 @@ export default function AdDetailPage() {
             
             {/* Thumbnails */}
             {ad.photoUrls && ad.photoUrls.length > 1 && (
-              <div className="flex gap-2 overflow-x-auto pb-2">
+              <div className="flex flex-wrap gap-2 pb-2">
                 {ad.photoUrls.map((url, index) => (
                   <div 
                     key={index}
@@ -162,6 +185,44 @@ export default function AdDetailPage() {
           </div>
         </div>
       </div>
+      
+      {/* Similar Ads Section */}
+      {similarAds.length > 0 && (
+        <div className="mt-8">
+          <h2 className="text-xl font-semibold mb-4">Similar Ads in {ad.location}</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {similarAds.map((similarAd) => (
+              <Link key={similarAd.id} href={`/ad/${similarAd.id}`}>
+                <div className="border border-gray-200 rounded-md overflow-hidden hover:shadow-md transition-shadow">
+                  {/* Ad Image */}
+                  <div className="h-48 w-full">
+                    {similarAd.photoUrls && similarAd.photoUrls.length > 0 ? (
+                      <img 
+                        src={similarAd.photoUrls[0]} 
+                        alt={similarAd.title} 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                        <span className="text-gray-400">No image</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Ad Info */}
+                  <div className="p-3">
+                    <h3 className="font-medium text-sm mb-1 truncate">{similarAd.title}</h3>
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-gray-600">{similarAd.location}</span>
+                      {similarAd.age && <span className="text-gray-600">Age: {similarAd.age}</span>}
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
