@@ -1,6 +1,7 @@
 import { Link, useLocation } from "wouter";
 import Logo from "./Logo";
 import { ReactNode } from "react";
+import { useAuth } from "@/hooks/use-auth";
 
 interface LayoutProps {
   children: ReactNode;
@@ -8,6 +9,11 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   const [location] = useLocation();
+  const { user, logoutMutation } = useAuth();
+
+  const handleLogout = () => {
+    logoutMutation.mutate();
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
@@ -17,11 +23,23 @@ export default function Layout({ children }: LayoutProps) {
           <Link href="/">
             <Logo />
           </Link>
-          <div className="flex space-x-2">
-            {location !== "/login" && location !== "/register" && (
-              <Link href="/login" className="text-gray-600 text-sm hover:text-[#4ebb78]">
+          <div className="flex space-x-2 items-center">
+            {!user ? (
+              <Link href="/auth" className="text-gray-600 text-sm hover:text-[#4ebb78]">
                 Login
               </Link>
+            ) : (
+              <>
+                <span className="text-gray-600 text-sm mr-2">
+                  Welcome, {user.firstName || user.username}
+                </span>
+                <button 
+                  onClick={handleLogout}
+                  className="text-gray-600 text-sm hover:text-[#4ebb78]"
+                >
+                  Logout
+                </button>
+              </>
             )}
             <Link 
               href="/post-ad" 
@@ -50,7 +68,7 @@ export default function Layout({ children }: LayoutProps) {
             <Link href="#" className="text-xs text-gray-500 hover:text-[#4ebb78]">Terms Of Service</Link>
             <Link href="#" className="text-xs text-gray-500 hover:text-[#4ebb78]">Privacy Policy</Link>
           </div>
-          <p className="text-xs text-gray-500">© 2023 Schloka - Find Free Classifieds Ads. All Rights Reserved.</p>
+          <p className="text-xs text-gray-500">© 2025 Schloka - Find Free Classifieds Ads. All Rights Reserved.</p>
         </div>
       </footer>
     </div>

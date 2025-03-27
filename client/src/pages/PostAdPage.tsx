@@ -35,7 +35,7 @@ export default function PostAdPage() {
   });
 
   const onSubmit = (data: AdFormValues) => {
-    // In a real application, this would make an API call
+    // In a real application, this would make an API call to save the ad
     console.log("Ad data:", data);
     
     toast({
@@ -43,6 +43,7 @@ export default function PostAdPage() {
       description: "Your ad has been posted successfully.",
     });
     
+    // Reset the form after successful submission
     reset();
   };
 

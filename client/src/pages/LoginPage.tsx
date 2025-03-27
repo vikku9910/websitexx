@@ -32,7 +32,10 @@ export default function LoginPage() {
 
   const loginMutation = useMutation({
     mutationFn: async (data: LoginFormValues) => {
-      const res = await apiRequest("POST", "/api/login", data);
+      const res = await apiRequest("POST", "/api/login", {
+        username: data.email,
+        password: data.password
+      });
       return await res.json();
     },
     onSuccess: () => {
