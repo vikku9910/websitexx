@@ -84,9 +84,9 @@ export default function LocationPage() {
       ) : (
         <div className="space-y-4">
           {ads.map((ad) => (
-            <div key={ad.id} className="border border-gray-200 rounded-md p-4 bg-white hover:shadow-md transition-shadow">
-              <div className="flex gap-4">
-                <div className="w-48 h-48 flex-shrink-0">
+            <div key={ad.id} className="border border-gray-200 bg-amber-50 rounded-md p-4 hover:shadow-md transition-shadow">
+              <Link href={`/ad/${ad.id}`} className="flex gap-4">
+                <div className="w-32 h-32 flex-shrink-0">
                   {ad.photoUrls && ad.photoUrls.length > 0 ? (
                     <img 
                       src={ad.photoUrls[0]} 
@@ -100,65 +100,59 @@ export default function LocationPage() {
                   )}
                 </div>
                 
-                <div className="flex-1">
-                  <Link href={`/ad/${ad.id}`}>
-                    <h2 className="text-lg font-semibold text-[#4ebb78] hover:underline cursor-pointer">
-                      {ad.title}
-                    </h2>
-                  </Link>
+                <div className="flex-1 ml-1">
+                  <h2 className="text-base font-bold text-[#000000] hover:underline cursor-pointer">
+                    {ad.title}
+                  </h2>
                   
-                  <p className="text-sm text-gray-600 mt-2 line-clamp-3">
-                    {ad.description}
+                  <p className="text-sm text-gray-700 mt-1">
+                    {ad.description && ad.description.length > 100 
+                      ? ad.description.substring(0, 100) + '...' 
+                      : ad.description}
                   </p>
                   
-                  <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3">
-                    <div className="flex items-center text-sm text-gray-600">
-                      <MapPin className="h-4 w-4 mr-1" />
-                      <span>{ad.location}</span>
-                    </div>
-                    
-                    {ad.age && (
-                      <div className="flex items-center text-sm text-gray-600">
-                        <span>Age: {ad.age}</span>
-                      </div>
-                    )}
-                    
-                    <div className="flex items-center text-sm text-gray-600">
-                      <Phone className="h-4 w-4 mr-1" />
-                      <span>{ad.contactNumber}</span>
-                    </div>
+                  <div className="flex items-center mt-2">
+                    <span className="text-xs text-gray-700">
+                      {ad.location} • {ad.age ? `Age: ${ad.age}` : ''} • 
+                    </span>
                   </div>
                   
-                  <div className="mt-4 flex justify-between items-center">
-                    <div>
+                  <div className="flex items-center justify-between mt-2">
+                    <div className="flex items-center">
+                      <span className="text-xs px-1 py-0.5 rounded bg-green-100 text-green-800 mr-1">
+                        {ad.category || 'Escort'}
+                      </span>
                       {ad.isVerified && (
-                        <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+                        <span className="text-xs px-1 py-0.5 rounded bg-blue-100 text-blue-800">
                           Verified
                         </span>
                       )}
                     </div>
                     
-                    <div className="text-xs text-gray-500">
-                      Views: {ad.viewCount || 0}
+                    <div className="text-xs text-green-600 font-medium">
+                      {ad.contactNumber}
                     </div>
                   </div>
                 </div>
                 
-                <div className="flex flex-col items-end justify-between ml-2">
+                <div className="flex flex-col items-end justify-between gap-2">
                   <a 
                     href={`https://wa.me/${ad.contactNumber}`} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center w-8 h-8 bg-green-500 text-white rounded-full"
+                    className="flex items-center justify-center w-8 h-8"
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    <MessageCircle className="h-4 w-4" />
+                    <img 
+                      src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/1200px-WhatsApp.svg.png" 
+                      alt="WhatsApp" 
+                      className="w-6 h-6"
+                    />
                   </a>
                   
                   <span className="text-xs text-gray-500">
-                    {new Date(ad.createdAt).toLocaleDateString()}
+                    {ad.id}
                   </span>
                 </div>
-              </div>
+              </Link>
             </div>
           ))}
         </div>

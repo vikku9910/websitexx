@@ -15,15 +15,21 @@ const adSchema = z.object({
   category: z.string().min(1, "Category is required"),
   contactNumber: z.string().min(1, "Contact number is required"),
   contactEmail: z.string().email("Please enter a valid email address"),
-  photos: z
-    .instanceof(FileList)
-    .refine((files) => files.length > 0, "At least one photo is required")
+  photos: z.any()
+    .refine((files) => files && files instanceof FileList && files.length > 0, 
+      "At least one photo is required")
     .refine(
-      (files) => Array.from(files).every((file) => file.size <= MAX_FILE_SIZE),
+      (files) => {
+        if (!files || !(files instanceof FileList)) return true;
+        return Array.from(files).every((file) => file.size <= MAX_FILE_SIZE);
+      },
       `Each file size should be less than 5MB`
     )
     .refine(
-      (files) => Array.from(files).every((file) => ACCEPTED_IMAGE_TYPES.includes(file.type)),
+      (files) => {
+        if (!files || !(files instanceof FileList)) return true;
+        return Array.from(files).every((file) => ACCEPTED_IMAGE_TYPES.includes(file.type));
+      },
       "Only .jpg, .jpeg, .png and .webp files are accepted"
     ),
 });
@@ -73,8 +79,12 @@ export default function PostAdPage() {
 
   const onSubmit = async (data: AdFormValues) => {
     try {
+      if (!data.photos || !(data.photos instanceof FileList)) {
+        throw new Error("Please upload at least one photo");
+      }
+      
       // Convert files to base64 strings for storage
-      const photoPromises = Array.from(data.photos).map(file => {
+      const photoPromises = Array.from(data.photos as FileList).map((file: File) => {
         return new Promise<string>((resolve) => {
           const reader = new FileReader();
           reader.onloadend = () => {
@@ -95,7 +105,8 @@ export default function PostAdPage() {
         contactNumber: data.contactNumber,
         contactEmail: data.contactEmail,
         photoUrls,
-        age: 25 // Default age value
+        age: 25, // Default age value
+        isVerified: true // Set to true for demo purposes
       };
       
       // Make API call to save the ad
