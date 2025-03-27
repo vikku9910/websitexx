@@ -16,22 +16,6 @@ const adSchema = z.object({
   contactNumber: z.string().min(1, "Contact number is required"),
   contactEmail: z.string().email("Please enter a valid email address"),
   photos: z.any()
-    .refine((files) => files && files instanceof FileList && files.length > 0, 
-      "At least one photo is required")
-    .refine(
-      (files) => {
-        if (!files || !(files instanceof FileList)) return true;
-        return Array.from(files).every((file) => file.size <= MAX_FILE_SIZE);
-      },
-      `Each file size should be less than 5MB`
-    )
-    .refine(
-      (files) => {
-        if (!files || !(files instanceof FileList)) return true;
-        return Array.from(files).every((file) => ACCEPTED_IMAGE_TYPES.includes(file.type));
-      },
-      "Only .jpg, .jpeg, .png and .webp files are accepted"
-    ),
 });
 
 type AdFormValues = z.infer<typeof adSchema>;
@@ -79,12 +63,18 @@ export default function PostAdPage() {
 
   const onSubmit = async (data: AdFormValues) => {
     try {
-      if (!data.photos || !(data.photos instanceof FileList)) {
-        throw new Error("Please upload at least one photo");
+      // Use the selected files from state instead of relying on form data
+      if (!selectedFiles || selectedFiles.length === 0) {
+        toast({
+          title: "Error",
+          description: "Please upload at least one photo",
+          variant: "destructive"
+        });
+        return;
       }
       
       // Convert files to base64 strings for storage
-      const photoPromises = Array.from(data.photos as FileList).map((file: File) => {
+      const photoPromises = Array.from(selectedFiles).map((file: File) => {
         return new Promise<string>((resolve) => {
           const reader = new FileReader();
           reader.onloadend = () => {
@@ -271,19 +261,20 @@ export default function PostAdPage() {
             <label htmlFor="photos" className="block text-gray-700 text-sm mb-2">
               Photos* <span className="text-xs text-gray-500">(Upload at least one photo)</span>
             </label>
-            <input
-              type="file"
-              id="photos"
-              multiple
-              accept=".jpg,.jpeg,.png,.webp"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4ebb78]"
-              {...register("photos")}
-              onChange={handleFileChange}
-              ref={fileInputRef}
-            />
-            {errors.photos && (
-              <p className="text-red-500 text-xs mt-1">{errors.photos.message?.toString()}</p>
-            )}
+            <div className="relative">
+              <input
+                type="file"
+                id="photos"
+                multiple
+                accept=".jpg,.jpeg,.png,.webp"
+                className={`w-full px-3 py-2 border ${previewUrls.length === 0 ? 'border-red-300' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-1 focus:ring-[#4ebb78]`}
+                onChange={handleFileChange}
+                ref={fileInputRef}
+              />
+              {previewUrls.length === 0 && (
+                <p className="text-red-500 text-xs mt-1">At least one photo is required</p>
+              )}
+            </div>
             
             {/* Image Preview Section */}
             {previewUrls.length > 0 && (
