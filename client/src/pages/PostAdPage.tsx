@@ -3,7 +3,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useRef } from "react";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Home } from "lucide-react";
+import { Link } from "wouter";
 
 // Maximum file size: 5MB
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -11,9 +12,29 @@ const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/web
 const MIN_PHOTOS = 2;
 const MAX_PHOTOS = 5;
 
+// Function to validate minimum word count
+const validateWordCount = (text: string, minWords: number, fieldName: string) => {
+  const words = text.trim().split(/\s+/);
+  return words.length >= minWords || `${fieldName} must contain at least ${minWords} words`;
+};
+
 const adSchema = z.object({
-  title: z.string().min(1, "Title is required"),
-  description: z.string().min(10, "Description must be at least 10 characters"),
+  title: z.string()
+    .min(1, "Title is required")
+    .refine(
+      (value) => validateWordCount(value, 30, "Title") === true,
+      {
+        message: "Title must contain at least 30 words"
+      }
+    ),
+  description: z.string()
+    .min(10, "Description must be at least 10 characters")
+    .refine(
+      (value) => validateWordCount(value, 50, "Description") === true,
+      {
+        message: "Description must contain at least 50 words"
+      }
+    ),
   location: z.string().min(1, "Location is required"),
   category: z.string().min(1, "Category is required"),
   contactNumber: z.string().min(1, "Contact number is required"),
@@ -230,7 +251,14 @@ export default function PostAdPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl font-semibold text-gray-800 mb-6 text-center">Post Your Ad</h1>
+        <div className="flex justify-between items-center mb-6">
+          <Link href="/" className="flex items-center text-[#4ebb78] hover:underline">
+            <Home className="h-5 w-5 mr-1" />
+            <span>Home</span>
+          </Link>
+          <h1 className="text-2xl font-semibold text-gray-800 text-center flex-1">Post Your Ad</h1>
+          <div className="w-20"></div> {/* This empty div helps balance the layout */}
+        </div>
         
         {/* Error Banner */}
         {submitError && (
