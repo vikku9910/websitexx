@@ -22,9 +22,9 @@ const adSchema = z.object({
   title: z.string()
     .min(1, "Title is required")
     .refine(
-      (value) => validateWordCount(value, 30, "Title") === true,
+      (value) => validateWordCount(value, 10, "Title") === true,
       {
-        message: "Title must contain at least 30 words"
+        message: "Title must contain at least 10 words"
       }
     ),
   description: z.string()
