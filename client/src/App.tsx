@@ -8,6 +8,11 @@ import PostAdPage from "@/pages/PostAdPage";
 import AuthPage from "@/pages/auth-page";
 import LocationPage from "@/pages/LocationPage";
 import AdDetailPage from "@/pages/AdDetailPage";
+import AboutPage from "@/pages/AboutPage";
+import ContactPage from "@/pages/ContactPage";
+import TermsPage from "@/pages/TermsPage";
+import PrivacyPage from "@/pages/PrivacyPage";
+import SitemapPage from "@/pages/SitemapPage";
 import Layout from "@/components/Layout";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/lib/protected-route";
@@ -21,6 +26,11 @@ function Router() {
         <ProtectedRoute path="/post-ad" component={PostAdPage} />
         <Route path="/location/:location" component={LocationPage} />
         <Route path="/ad/:id" component={AdDetailPage} />
+        <Route path="/about" component={AboutPage} />
+        <Route path="/contact" component={ContactPage} />
+        <Route path="/terms" component={TermsPage} />
+        <Route path="/privacy" component={PrivacyPage} />
+        <Route path="/sitemap" component={SitemapPage} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

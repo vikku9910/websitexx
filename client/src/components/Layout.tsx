@@ -2,6 +2,7 @@ import { Link, useLocation } from "wouter";
 import Logo from "./Logo";
 import { ReactNode } from "react";
 import { useAuth } from "@/hooks/use-auth";
+import Footer from "./Footer";
 
 interface LayoutProps {
   children: ReactNode;
@@ -56,21 +57,13 @@ export default function Layout({ children }: LayoutProps) {
         {children}
       </main>
 
-      {/* Footer */}
-      <footer className="mt-auto bg-white border-t border-gray-200">
-        <div className="container mx-auto px-4 py-6 text-center">
-          <p className="text-sm text-gray-500 mb-2">support@schloka.com</p>
-          <div className="flex flex-wrap justify-center gap-4 mb-2">
-            <Link href="#" className="text-xs text-gray-500 hover:text-[#4ebb78]">About Us</Link>
-            <Link href="#" className="text-xs text-gray-500 hover:text-[#4ebb78]">Contact Us</Link>
-            <Link href="/post-ad" className="text-xs text-gray-500 hover:text-[#4ebb78]">Post Your Ad</Link>
-            <Link href="#" className="text-xs text-gray-500 hover:text-[#4ebb78]">Sitemap</Link>
-            <Link href="#" className="text-xs text-gray-500 hover:text-[#4ebb78]">Terms Of Service</Link>
-            <Link href="#" className="text-xs text-gray-500 hover:text-[#4ebb78]">Privacy Policy</Link>
-          </div>
-          <p className="text-xs text-gray-500">© 2025 Schloka - Find Free Classifieds Ads. All Rights Reserved.</p>
+      {/* Custom Footer Component */}
+      <div className="mt-auto">
+        <Footer />
+        <div className="bg-black text-white py-3 text-center text-sm">
+          © 2022 Schloka - Post Free Classifieds Ads. All Rights Reserved.
         </div>
-      </footer>
+      </div>
     </div>
   );
 }
