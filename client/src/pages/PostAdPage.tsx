@@ -65,6 +65,42 @@ export default function PostAdPage() {
       return;
     }
     
+    // Validate file size and type
+    let isValid = true;
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      
+      // Check file size
+      if (file.size > MAX_FILE_SIZE) {
+        toast({
+          title: "File too large",
+          description: `File "${file.name}" exceeds the 5MB size limit`,
+          variant: "destructive"
+        });
+        isValid = false;
+        break;
+      }
+      
+      // Check file type
+      if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+        toast({
+          title: "Invalid file type",
+          description: `File "${file.name}" is not a supported image type. Please use JPG, PNG, or WebP.`,
+          variant: "destructive"
+        });
+        isValid = false;
+        break;
+      }
+    }
+    
+    if (!isValid) {
+      // Reset the file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+      return;
+    }
+    
     setSelectedFiles(files);
     
     // Create preview URLs for selected images
@@ -347,8 +383,24 @@ export default function PostAdPage() {
                         alt={`Preview ${index + 1}`}
                         className="w-24 h-24 object-cover rounded-md border border-gray-300"
                       />
+                      <span className="absolute top-0 right-0 bg-black bg-opacity-50 text-white rounded-bl-md rounded-tr-md px-1.5 py-0.5 text-xs">
+                        {index + 1}
+                      </span>
                     </div>
                   ))}
+                </div>
+                <div className="mt-2 flex items-center text-xs text-gray-700">
+                  <span className={previewUrls.length < MIN_PHOTOS ? "text-red-500" : "text-green-500"}>
+                    {previewUrls.length} of {MIN_PHOTOS}-{MAX_PHOTOS} photos selected
+                  </span>
+                  {previewUrls.length >= MIN_PHOTOS && previewUrls.length <= MAX_PHOTOS && (
+                    <span className="ml-2 text-green-500 flex items-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      OK
+                    </span>
+                  )}
                 </div>
               </div>
             )}
