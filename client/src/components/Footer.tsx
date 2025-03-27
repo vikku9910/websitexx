@@ -1,10 +1,18 @@
 import { Link } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 
 export default function Footer() {
+  const { data: settings } = useQuery<Record<string, string>>({
+    queryKey: ["/api/site-settings"],
+  });
+  
+  const siteName = settings?.siteName || "Schloka";
+  const currentYear = new Date().getFullYear();
+  
   return (
     <footer className="border-t border-gray-200 py-6">
       <div className="container mx-auto px-4">
-        <div className="flex flex-wrap justify-center items-center gap-6 md:gap-8">
+        <div className="flex flex-wrap justify-center items-center gap-6 md:gap-8 mb-4">
           <Link href="/about">
             <span className="text-gray-600 hover:text-[#4ebb78] text-sm cursor-pointer">About Us</span>
           </Link>
@@ -23,6 +31,9 @@ export default function Footer() {
           <Link href="/privacy">
             <span className="text-gray-600 hover:text-[#4ebb78] text-sm cursor-pointer">Privacy Policy</span>
           </Link>
+        </div>
+        <div className="text-center text-gray-500 text-xs">
+          &copy; {currentYear} {siteName}. All rights reserved.
         </div>
       </div>
     </footer>

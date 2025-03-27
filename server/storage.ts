@@ -1,4 +1,5 @@
-import { users, type User, type InsertUser, ads, type Ad, type InsertAd } from "@shared/schema";
+import { users, type User, type InsertUser, ads, type Ad, type InsertAd, 
+         siteSettings, type SiteSetting, pageContents, type PageContent } from "@shared/schema";
 import createMemoryStore from "memorystore";
 import session from "express-session";
 
@@ -25,21 +26,56 @@ export interface IStorage {
   verifyAd(id: number): Promise<Ad | undefined>;
   toggleAdActive(id: number, isActive: boolean): Promise<Ad | undefined>;
   
+  // Site settings operations
+  getSetting(key: string): Promise<string | null>;
+  setSetting(key: string, value: string): Promise<void>;
+  getAllSettings(): Promise<Record<string, string>>;
+  
+  // Page content operations
+  getPageContent(page: string): Promise<PageContent | undefined>;
+  setPageContent(page: string, content: string, userId: number): Promise<PageContent>;
+  getAllPageContents(): Promise<PageContent[]>;
+  
   sessionStore: session.Store;
 }
 
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
   private ads: Map<number, Ad>;
+  private settings: Map<string, string>;
+  private pageContents: Map<string, PageContent>;
   userCurrentId: number;
   adCurrentId: number;
+  pageContentCurrentId: number;
   sessionStore: session.Store;
 
   constructor() {
     this.users = new Map();
     this.ads = new Map();
+    this.settings = new Map();
+    this.pageContents = new Map();
     this.userCurrentId = 1;
     this.adCurrentId = 1;
+    this.pageContentCurrentId = 1;
+    
+    // Set default site name
+    this.settings.set('siteName', 'Schloka');
+    
+    // Set default page contents
+    const defaultPages = [
+      'about', 'contact', 'terms', 'privacy', 'sitemap'
+    ];
+    
+    defaultPages.forEach((page) => {
+      this.pageContents.set(page, {
+        id: this.pageContentCurrentId++,
+        page,
+        content: `Default content for ${page} page. This can be edited by an admin.`,
+        updatedAt: new Date(),
+        updatedBy: null
+      });
+    });
+    
     this.sessionStore = new MemoryStore({
       checkPeriod: 86400000,
     });
@@ -157,6 +193,47 @@ export class MemStorage implements IStorage {
     const updatedAd = { ...ad, isActive };
     this.ads.set(id, updatedAd);
     return updatedAd;
+  }
+  
+  // Site settings operations
+  async getSetting(key: string): Promise<string | null> {
+    return this.settings.get(key) || null;
+  }
+  
+  async setSetting(key: string, value: string): Promise<void> {
+    this.settings.set(key, value);
+  }
+  
+  async getAllSettings(): Promise<Record<string, string>> {
+    const settingsObj: Record<string, string> = {};
+    this.settings.forEach((value, key) => {
+      settingsObj[key] = value;
+    });
+    return settingsObj;
+  }
+  
+  // Page content operations
+  async getPageContent(page: string): Promise<PageContent | undefined> {
+    return this.pageContents.get(page);
+  }
+  
+  async setPageContent(page: string, content: string, userId: number): Promise<PageContent> {
+    const existingContent = this.pageContents.get(page);
+    
+    const updatedContent: PageContent = {
+      id: existingContent ? existingContent.id : this.pageContentCurrentId++,
+      page,
+      content,
+      updatedAt: new Date(),
+      updatedBy: userId
+    };
+    
+    this.pageContents.set(page, updatedContent);
+    return updatedContent;
+  }
+  
+  async getAllPageContents(): Promise<PageContent[]> {
+    return Array.from(this.pageContents.values());
   }
 }
 

@@ -300,6 +300,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Failed to update ad" });
     }
   });
+  
+  // Settings and content management routes
+  
+  // Get site settings
+  app.get("/api/site-settings", async (_req, res) => {
+    try {
+      const settings = await storage.getAllSettings();
+      res.json(settings);
+    } catch (error) {
+      console.error("Error getting site settings:", error);
+      res.status(500).json({ error: "Failed to get settings" });
+    }
+  });
+  
+  // Update site settings (admin only)
+  app.post("/api/admin/site-settings", isAdmin, async (req, res) => {
+    const { key, value } = req.body;
+    
+    if (!key || typeof value !== "string") {
+      return res.status(400).json({ error: "Key and value are required" });
+    }
+    
+    try {
+      await storage.setSetting(key, value);
+      res.json({ key, value });
+    } catch (error) {
+      console.error("Error updating setting:", error);
+      res.status(500).json({ error: "Failed to update setting" });
+    }
+  });
+  
+  // Get page content
+  app.get("/api/page-content/:page", async (req, res) => {
+    const { page } = req.params;
+    
+    try {
+      const content = await storage.getPageContent(page);
+      if (!content) {
+        return res.status(404).json({ error: "Page content not found" });
+      }
+      res.json(content);
+    } catch (error) {
+      console.error(`Error getting ${page} page content:`, error);
+      res.status(500).json({ error: "Failed to get page content" });
+    }
+  });
+  
+  // Update page content (admin only)
+  app.post("/api/admin/page-content/:page", isAdmin, async (req, res) => {
+    const { page } = req.params;
+    const { content } = req.body;
+    
+    if (!content || typeof content !== "string") {
+      return res.status(400).json({ error: "Content is required" });
+    }
+    
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      
+      const updatedContent = await storage.setPageContent(page, content, req.user.id);
+      res.json(updatedContent);
+    } catch (error) {
+      console.error(`Error updating ${page} page content:`, error);
+      res.status(500).json({ error: "Failed to update page content" });
+    }
+  });
 
   const httpServer = createServer(app);
 

@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { User, Ad } from "@shared/schema";
+import { User, Ad, PageContent } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -15,11 +15,17 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { AlertCircle, CheckCircle, Trash2, Shield, ShieldAlert } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { AlertCircle, CheckCircle, Trash2, Shield, ShieldAlert, Settings, FileText, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState("users");
+  const [siteName, setSiteName] = useState("Schloka");
+  const [selectedPage, setSelectedPage] = useState("about");
+  const [pageContent, setPageContent] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -32,6 +38,32 @@ export default function AdminPage() {
     queryKey: ["/api/admin/ads"],
     enabled: activeTab === "ads",
   });
+
+  // Site settings query
+  const { data: settings, isLoading: settingsLoading } = useQuery<Record<string, string>>({
+    queryKey: ["/api/site-settings"],
+    enabled: activeTab === "settings",
+  });
+
+  // Update siteName whenever settings are updated
+  useEffect(() => {
+    if (settings?.siteName) {
+      setSiteName(settings.siteName);
+    }
+  }, [settings]);
+
+  // Page content query
+  const { data: contentData, isLoading: contentLoading } = useQuery<PageContent>({
+    queryKey: ["/api/page-content", selectedPage],
+    enabled: activeTab === "content" && selectedPage !== "",
+  });
+  
+  // Update pageContent whenever contentData is updated
+  useEffect(() => {
+    if (contentData?.content) {
+      setPageContent(contentData.content);
+    }
+  }, [contentData]);
 
   const makeAdminMutation = useMutation({
     mutationFn: async (userId: number) => {
@@ -117,6 +149,55 @@ export default function AdminPage() {
       });
     },
   });
+  
+  // Update site name mutation
+  const updateSiteNameMutation = useMutation({
+    mutationFn: async (newName: string) => {
+      const res = await apiRequest("POST", "/api/admin/site-settings", {
+        key: "siteName",
+        value: newName
+      });
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/site-settings"] });
+      toast({
+        title: "Success",
+        description: "Site name has been updated",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Update page content mutation
+  const updatePageContentMutation = useMutation({
+    mutationFn: async (content: string) => {
+      const res = await apiRequest("POST", `/api/admin/page-content/${selectedPage}`, {
+        content
+      });
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/page-content", selectedPage] });
+      toast({
+        title: "Success",
+        description: `${selectedPage.charAt(0).toUpperCase() + selectedPage.slice(1)} page content has been updated`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
 
   return (
     <div className="container mx-auto py-8">
@@ -134,6 +215,8 @@ export default function AdminPage() {
         <TabsList className="mb-6">
           <TabsTrigger value="users">Users</TabsTrigger>
           <TabsTrigger value="ads">Ads</TabsTrigger>
+          <TabsTrigger value="settings">Site Settings</TabsTrigger>
+          <TabsTrigger value="content">Page Content</TabsTrigger>
         </TabsList>
 
         <TabsContent value="users" className="p-4 border rounded-lg">
@@ -269,6 +352,129 @@ export default function AdminPage() {
               </TableBody>
             </Table>
           )}
+        </TabsContent>
+        
+        <TabsContent value="settings" className="p-4 border rounded-lg">
+          <h2 className="text-xl font-semibold mb-4">Site Settings</h2>
+          {settingsLoading ? (
+            <div className="flex justify-center py-8">Loading settings...</div>
+          ) : (
+            <Card className="w-full max-w-md mx-auto">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Settings className="h-5 w-5 mr-2" />
+                  Website Configuration
+                </CardTitle>
+                <CardDescription>
+                  Change the website name and other global settings
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label htmlFor="siteName" className="text-sm font-medium">
+                      Site Name
+                    </label>
+                    <Input
+                      id="siteName"
+                      value={siteName}
+                      onChange={(e) => setSiteName(e.target.value)}
+                      placeholder="Enter site name"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button 
+                  onClick={() => updateSiteNameMutation.mutate(siteName)}
+                  disabled={updateSiteNameMutation.isPending || (settings?.siteName === siteName)}
+                  className="w-full"
+                >
+                  {updateSiteNameMutation.isPending ? (
+                    "Saving..."
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      Save Changes
+                    </>
+                  )}
+                </Button>
+              </CardFooter>
+            </Card>
+          )}
+        </TabsContent>
+        
+        <TabsContent value="content" className="p-4 border rounded-lg">
+          <h2 className="text-xl font-semibold mb-4">Page Content Management</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="md:col-span-1">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <FileText className="h-5 w-5 mr-2" />
+                    Pages
+                  </CardTitle>
+                  <CardDescription>
+                    Select a page to edit its content
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {['about', 'contact', 'terms', 'privacy', 'sitemap'].map((page) => (
+                      <Button
+                        key={page}
+                        variant={selectedPage === page ? "default" : "outline"}
+                        className="w-full justify-start"
+                        onClick={() => setSelectedPage(page)}
+                      >
+                        {page.charAt(0).toUpperCase() + page.slice(1)} Page
+                      </Button>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+            <div className="md:col-span-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle>
+                    Editing: {selectedPage.charAt(0).toUpperCase() + selectedPage.slice(1)} Page
+                  </CardTitle>
+                  <CardDescription>
+                    Update the content shown on this page
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {contentLoading ? (
+                    <div className="flex justify-center py-8">Loading content...</div>
+                  ) : (
+                    <Textarea
+                      value={pageContent}
+                      onChange={(e) => setPageContent(e.target.value)}
+                      placeholder="Enter page content"
+                      className="min-h-[300px]"
+                    />
+                  )}
+                </CardContent>
+                <CardFooter>
+                  <Button 
+                    onClick={() => updatePageContentMutation.mutate(pageContent)}
+                    disabled={updatePageContentMutation.isPending || (contentData?.content === pageContent)}
+                    className="w-full"
+                  >
+                    {updatePageContentMutation.isPending ? (
+                      "Saving..."
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4 mr-2" />
+                        Save Content
+                      </>
+                    )}
+                  </Button>
+                </CardFooter>
+              </Card>
+            </div>
+          </div>
         </TabsContent>
       </Tabs>
     </div>

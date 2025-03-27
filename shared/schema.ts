@@ -48,3 +48,36 @@ export const insertAdSchema = createInsertSchema(ads).omit({
 
 export type InsertAd = z.infer<typeof insertAdSchema>;
 export type Ad = typeof ads.$inferSelect;
+
+// Site settings schema
+export const siteSettings = pgTable("site_settings", {
+  id: serial("id").primaryKey(),
+  key: text("key").notNull(),
+  value: text("value").notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertSettingSchema = createInsertSchema(siteSettings).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export type InsertSetting = z.infer<typeof insertSettingSchema>;
+export type SiteSetting = typeof siteSettings.$inferSelect;
+
+// Content management schema
+export const pageContents = pgTable("page_contents", {
+  id: serial("id").primaryKey(),
+  page: text("page").notNull(),
+  content: text("content").notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  updatedBy: integer("updated_by").references(() => users.id),
+});
+
+export const insertPageContentSchema = createInsertSchema(pageContents).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export type InsertPageContent = z.infer<typeof insertPageContentSchema>;
+export type PageContent = typeof pageContents.$inferSelect;
