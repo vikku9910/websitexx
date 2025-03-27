@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import Footer from "@/components/Footer";
+
 import { locations } from "@/data/locations";
 import { useQuery } from "@tanstack/react-query";
 import { PageContent } from "@shared/schema";
@@ -102,9 +102,6 @@ export default function SitemapPage() {
             </div>
           </div>
         </div>
-      </div>
-      <div className="mt-auto">
-        <Footer />
       </div>
     </div>
   );

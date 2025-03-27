@@ -2,6 +2,7 @@ import { Link, useLocation } from "wouter";
 import Logo from "./Logo";
 import { ReactNode } from "react";
 import { useAuth } from "@/hooks/use-auth";
+import { useQuery } from "@tanstack/react-query";
 import Footer from "./Footer";
 
 interface LayoutProps {
@@ -11,6 +12,12 @@ interface LayoutProps {
 export default function Layout({ children }: LayoutProps) {
   const [location] = useLocation();
   const { user, logoutMutation } = useAuth();
+  const { data: settings } = useQuery<Record<string, string>>({
+    queryKey: ["/api/site-settings"],
+  });
+  
+  const siteName = settings?.siteName || "Schloka";
+  const currentYear = new Date().getFullYear();
 
   const handleLogout = () => {
     logoutMutation.mutate();
@@ -66,7 +73,7 @@ export default function Layout({ children }: LayoutProps) {
       <div className="mt-auto">
         <Footer />
         <div className="bg-black text-white py-3 text-center text-sm">
-          © 2022 Schloka - Post Free Classifieds Ads. All Rights Reserved.
+          © {currentYear} {siteName} - Post Free Classifieds Ads. All Rights Reserved.
         </div>
       </div>
     </div>

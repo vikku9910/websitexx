@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
+import { useQuery } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // Login form schema
@@ -32,6 +33,11 @@ export default function AuthPage() {
   const [activeTab, setActiveTab] = useState("login");
   const [, navigate] = useLocation();
   const { user, loginMutation, registerMutation } = useAuth();
+  const { data: settings } = useQuery<Record<string, string>>({
+    queryKey: ["/api/site-settings"],
+  });
+  
+  const siteName = settings?.siteName || "Schloka";
   
   // Redirect if user is already logged in
   if (user) {
@@ -270,7 +276,7 @@ export default function AuthPage() {
         <div className="bg-[#f9fafb] p-8 rounded-md shadow hidden md:block">
           <h2 className="text-3xl font-bold text-gray-800 mb-4">Find Your Perfect Match</h2>
           <p className="text-gray-600 mb-6">
-            Join the world's largest escort directory with thousands of active listings. Schloka offers a secure and user-friendly platform to connect with verified escorts in your area.
+            Join the world's largest escort directory with thousands of active listings. {siteName} offers a secure and user-friendly platform to connect with verified escorts in your area.
           </p>
           
           <div className="space-y-4">

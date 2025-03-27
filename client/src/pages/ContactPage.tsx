@@ -1,4 +1,4 @@
-import Footer from "@/components/Footer";
+
 import { useQuery } from "@tanstack/react-query";
 import { PageContent } from "@shared/schema";
 
@@ -34,17 +34,7 @@ export default function ContactPage() {
           )}
           
           <div className="border-t border-gray-200 my-8"></div>
-          
-          <div className="flex justify-center mt-8 mb-8">
-            <div className="flex items-center space-x-3">
-              <span className="text-gray-400">📧</span>
-              <span className="text-gray-600">support@{siteName.toLowerCase()}.com</span>
-            </div>
-          </div>
         </div>
-      </div>
-      <div className="mt-auto">
-        <Footer />
       </div>
     </div>
   );

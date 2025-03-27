@@ -1,4 +1,4 @@
-import Footer from "@/components/Footer";
+
 import { useQuery } from "@tanstack/react-query";
 import { PageContent } from "@shared/schema";
 
@@ -57,9 +57,6 @@ export default function TermsPage() {
             </div>
           )}
         </div>
-      </div>
-      <div className="mt-auto">
-        <Footer />
       </div>
     </div>
   );
