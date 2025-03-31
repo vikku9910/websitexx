@@ -1,5 +1,4 @@
 import { useState } from "react";
-import Layout from "@/components/Layout";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -157,180 +156,178 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <Layout>
-      <div className="min-h-screen flex items-center justify-center py-12">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle>Reset Password</CardTitle>
-            <CardDescription>
-              {currentStep === 1 && "Enter your email to receive a reset code"}
-              {currentStep === 2 && "Enter the 6-digit reset code sent to your email"}
-              {currentStep === 3 && "Set your new password"}
-              {currentStep === 4 && "Password reset complete"}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {currentStep === 1 && (
-              <Form {...requestResetForm}>
-                <form onSubmit={requestResetForm.handleSubmit(onRequestResetSubmit)} className="space-y-4">
-                  <FormField
-                    control={requestResetForm.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input placeholder="your.email@example.com" {...field} />
-                        </FormControl>
-                        <FormDescription>
-                          Enter the email address associated with your account
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+    <div className="min-h-screen flex items-center justify-center py-12">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle>Reset Password</CardTitle>
+          <CardDescription>
+            {currentStep === 1 && "Enter your email to receive a reset code"}
+            {currentStep === 2 && "Enter the 6-digit reset code sent to your email"}
+            {currentStep === 3 && "Set your new password"}
+            {currentStep === 4 && "Password reset complete"}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {currentStep === 1 && (
+            <Form {...requestResetForm}>
+              <form onSubmit={requestResetForm.handleSubmit(onRequestResetSubmit)} className="space-y-4">
+                <FormField
+                  control={requestResetForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input placeholder="your.email@example.com" {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        Enter the email address associated with your account
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button 
+                  type="submit" 
+                  className="w-full" 
+                  disabled={requestResetMutation.isPending}
+                >
+                  {requestResetMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    "Send Reset Code"
+                  )}
+                </Button>
+              </form>
+            </Form>
+          )}
+
+          {currentStep === 2 && (
+            <Form {...verifyOtpForm}>
+              <form onSubmit={verifyOtpForm.handleSubmit(onVerifyOtpSubmit)} className="space-y-4">
+                <FormField
+                  control={verifyOtpForm.control}
+                  name="otp"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Reset Code</FormLabel>
+                      <FormControl>
+                        <Input placeholder="123456" maxLength={6} {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        Enter the 6-digit code sent to {email}
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="flex justify-between">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => setCurrentStep(1)}
+                  >
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back
+                  </Button>
                   <Button 
                     type="submit" 
-                    className="w-full" 
-                    disabled={requestResetMutation.isPending}
+                    disabled={verifyOtpMutation.isPending}
                   >
-                    {requestResetMutation.isPending ? (
+                    {verifyOtpMutation.isPending ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Sending...
+                        Verifying...
                       </>
                     ) : (
-                      "Send Reset Code"
+                      "Verify Code"
                     )}
                   </Button>
-                </form>
-              </Form>
-            )}
+                </div>
+              </form>
+            </Form>
+          )}
 
-            {currentStep === 2 && (
-              <Form {...verifyOtpForm}>
-                <form onSubmit={verifyOtpForm.handleSubmit(onVerifyOtpSubmit)} className="space-y-4">
-                  <FormField
-                    control={verifyOtpForm.control}
-                    name="otp"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Reset Code</FormLabel>
-                        <FormControl>
-                          <Input placeholder="123456" maxLength={6} {...field} />
-                        </FormControl>
-                        <FormDescription>
-                          Enter the 6-digit code sent to {email}
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
+          {currentStep === 3 && (
+            <Form {...resetPasswordForm}>
+              <form onSubmit={resetPasswordForm.handleSubmit(onResetPasswordSubmit)} className="space-y-4">
+                <FormField
+                  control={resetPasswordForm.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>New Password</FormLabel>
+                      <FormControl>
+                        <Input type="password" placeholder="••••••" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={resetPasswordForm.control}
+                  name="confirmPassword"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Confirm New Password</FormLabel>
+                      <FormControl>
+                        <Input type="password" placeholder="••••••" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="flex justify-between">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => setCurrentStep(2)}
+                  >
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    disabled={resetPasswordMutation.isPending}
+                  >
+                    {resetPasswordMutation.isPending ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Resetting...
+                      </>
+                    ) : (
+                      "Reset Password"
                     )}
-                  />
-                  <div className="flex justify-between">
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      onClick={() => setCurrentStep(1)}
-                    >
-                      <ArrowLeft className="mr-2 h-4 w-4" />
-                      Back
-                    </Button>
-                    <Button 
-                      type="submit" 
-                      disabled={verifyOtpMutation.isPending}
-                    >
-                      {verifyOtpMutation.isPending ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Verifying...
-                        </>
-                      ) : (
-                        "Verify Code"
-                      )}
-                    </Button>
-                  </div>
-                </form>
-              </Form>
-            )}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          )}
 
-            {currentStep === 3 && (
-              <Form {...resetPasswordForm}>
-                <form onSubmit={resetPasswordForm.handleSubmit(onResetPasswordSubmit)} className="space-y-4">
-                  <FormField
-                    control={resetPasswordForm.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>New Password</FormLabel>
-                        <FormControl>
-                          <Input type="password" placeholder="••••••" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={resetPasswordForm.control}
-                    name="confirmPassword"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Confirm New Password</FormLabel>
-                        <FormControl>
-                          <Input type="password" placeholder="••••••" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <div className="flex justify-between">
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      onClick={() => setCurrentStep(2)}
-                    >
-                      <ArrowLeft className="mr-2 h-4 w-4" />
-                      Back
-                    </Button>
-                    <Button 
-                      type="submit" 
-                      disabled={resetPasswordMutation.isPending}
-                    >
-                      {resetPasswordMutation.isPending ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Resetting...
-                        </>
-                      ) : (
-                        "Reset Password"
-                      )}
-                    </Button>
-                  </div>
-                </form>
-              </Form>
-            )}
-
-            {currentStep === 4 && (
-              <div className="text-center py-4">
-                <CheckCircle2 className="h-16 w-16 text-green-500 mx-auto mb-4" />
-                <h3 className="text-lg font-medium">Password Reset Successful</h3>
-                <p className="text-sm text-gray-500 mt-2 mb-6">
-                  Your password has been reset successfully. You can now login with your new password.
-                </p>
-                <Link href="/auth">
-                  <Button>Go to Login</Button>
-                </Link>
-              </div>
-            )}
-          </CardContent>
-          <CardFooter className="flex justify-center">
-            {currentStep !== 4 && (
-              <p className="text-sm text-center text-gray-500">
-                Remembered your password? <Link href="/auth" className="font-medium text-primary hover:underline">Login</Link>
+          {currentStep === 4 && (
+            <div className="text-center py-4">
+              <CheckCircle2 className="h-16 w-16 text-green-500 mx-auto mb-4" />
+              <h3 className="text-lg font-medium">Password Reset Successful</h3>
+              <p className="text-sm text-gray-500 mt-2 mb-6">
+                Your password has been reset successfully. You can now login with your new password.
               </p>
-            )}
-          </CardFooter>
-        </Card>
-      </div>
-    </Layout>
+              <Link href="/auth">
+                <Button>Go to Login</Button>
+              </Link>
+            </div>
+          )}
+        </CardContent>
+        <CardFooter className="flex justify-center">
+          {currentStep !== 4 && (
+            <p className="text-sm text-center text-gray-500">
+              Remembered your password? <Link href="/auth" className="font-medium text-primary hover:underline">Login</Link>
+            </p>
+          )}
+        </CardFooter>
+      </Card>
+    </div>
   );
 }
