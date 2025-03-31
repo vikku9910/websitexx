@@ -119,6 +119,29 @@ export default function LocationPage() {
                       : ad.description}
                   </p>
                   
+                  {/* Phone Number and WhatsApp - Middle of Ad */}
+                  <div className="flex items-center justify-start mt-3 mb-2">
+                    <div className="flex flex-col items-start">
+                      <div className="bg-green-50 px-3 py-1 rounded-md text-center mb-1">
+                        <span className="text-sm font-semibold text-gray-800">{ad.contactNumber}</span>
+                      </div>
+                      
+                      <a 
+                        href={`https://wa.me/${ad.contactNumber}?text=Hi`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <img 
+                          src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/1200px-WhatsApp.svg.png" 
+                          alt="WhatsApp" 
+                          className="w-8 h-8"
+                        />
+                      </a>
+                    </div>
+                  </div>
+                  
                   {/* Location & Date */}
                   <div className="flex items-center mt-2">
                     <span className="text-xs text-gray-700">
@@ -139,25 +162,7 @@ export default function LocationPage() {
                       )}
                     </div>
                     
-                    {/* Contact Number */}
-                    <div className="flex flex-col items-center">
-                      <div className="bg-green-50 px-3 py-1 rounded-md text-center mb-1">
-                        <span className="text-sm font-semibold text-gray-800">{ad.contactNumber}</span>
-                      </div>
-                      
-                      <a 
-                        href={`https://wa.me/${ad.contactNumber}?text=Hi`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center justify-center"
-                      >
-                        <img 
-                          src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/1200px-WhatsApp.svg.png" 
-                          alt="WhatsApp" 
-                          className="w-8 h-8"
-                        />
-                      </a>
-                    </div>
+                    <div></div>
                   </div>
                 </div>
                 
