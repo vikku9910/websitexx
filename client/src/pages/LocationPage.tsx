@@ -161,23 +161,9 @@ export default function LocationPage() {
                   </div>
                 </div>
                 
-                {/* WhatsApp & ID - Right Side */}
-                <div className="flex flex-col items-end justify-between gap-2">
-                  <a 
-                    href={`https://wa.me/${ad.contactNumber}?text=Hi`} 
-                    className="flex items-center justify-center w-9 h-9 bg-green-500 rounded-full"
-                    onClick={(e) => e.stopPropagation()}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <img 
-                      src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/1200px-WhatsApp.svg.png" 
-                      alt="WhatsApp" 
-                      className="w-6 h-6"
-                    />
-                  </a>
-                  
-                  <span className="text-xs text-gray-500">
+                {/* ID - Right Side */}
+                <div className="flex flex-col items-end justify-end">
+                  <span className="text-xs text-gray-500 mt-auto">
                     {ad.id}
                   </span>
                 </div>
