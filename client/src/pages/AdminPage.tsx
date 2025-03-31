@@ -23,8 +23,8 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState("users");
-  const [siteName, setSiteName] = useState("Schloka");
-  const [footerText, setFooterText] = useState("© 2025 Schloka - Post Free Classifieds Ads. All Rights Reserved.");
+  const [siteName, setSiteName] = useState("ClassiSpot");
+  const [footerText, setFooterText] = useState("© 2025 ClassiSpot - Post Free Classifieds Ads. All Rights Reserved.");
   const [selectedPage, setSelectedPage] = useState("about");
   const [pageContent, setPageContent] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -51,10 +51,14 @@ export default function AdminPage() {
   const filteredUsers = React.useMemo(() => {
     return users.filter((user: User) => {
       if (!searchQuery) return true;
+      const query = searchQuery.toLowerCase();
       const fullName = `${user.firstName || ''} ${user.lastName || ''}`.toLowerCase();
+      const mobile = user.mobileNumber?.toLowerCase() || '';
+      
       return (
-        user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        fullName.includes(searchQuery.toLowerCase())
+        user.username.toLowerCase().includes(query) ||
+        fullName.includes(query) ||
+        mobile.includes(query)
       );
     });
   }, [users, searchQuery]);
@@ -304,7 +308,7 @@ export default function AdminPage() {
             <div className="flex items-center space-x-2">
               <Input
                 className="max-w-sm"
-                placeholder="Search by username or name..."
+                placeholder="Search by email, name, or mobile number..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -328,8 +332,9 @@ export default function AdminPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>ID</TableHead>
-                  <TableHead>Username</TableHead>
-                  <TableHead>Name</TableHead>
+                  <TableHead>Email / Username</TableHead>
+                  <TableHead>Full Name</TableHead>
+                  <TableHead>Mobile Number</TableHead>
                   <TableHead>Points</TableHead>
                   <TableHead>Admin Status</TableHead>
                   <TableHead>Actions</TableHead>
@@ -338,20 +343,23 @@ export default function AdminPage() {
               <TableBody>
                 {filteredUsers.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                       No users found matching "{searchQuery}"
                     </TableCell>
                   </TableRow>
                 ) : (
                   filteredUsers.map((user) => (
-                    <TableRow key={user.id}>
+                    <TableRow key={user.id} className="hover:bg-muted/30">
                       <TableCell>{user.id}</TableCell>
-                      <TableCell>{user.username}</TableCell>
+                      <TableCell className="font-medium text-primary">
+                        {user.username}
+                      </TableCell>
                       <TableCell>
                         {user.firstName && user.lastName
                           ? `${user.firstName} ${user.lastName}`
                           : "N/A"}
                       </TableCell>
+                      <TableCell>{user.mobileNumber || "N/A"}</TableCell>
                       <TableCell className="flex items-center">
                         <div className="flex items-center">
                           <Wallet className="h-4 w-4 mr-1 text-primary" />

@@ -5,7 +5,7 @@ export default function Logo() {
     queryKey: ["/api/site-settings"],
   });
   
-  const siteName = settings?.siteName || "Schloka";
+  const siteName = settings?.siteName || "ClassiSpot";
   
   return (
     <span className="text-[#4ebb78] font-bold italic text-2xl cursor-pointer">

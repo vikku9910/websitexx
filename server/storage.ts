@@ -69,8 +69,8 @@ export class MemStorage implements IStorage {
     this.transactionCurrentId = 1;
     
     // Set default site name and footer text
-    this.settings.set('siteName', 'Schloka');
-    this.settings.set('footerText', '© 2025 Schloka - Post Free Classifieds Ads. All Rights Reserved.');
+    this.settings.set('siteName', 'ClassiSpot');
+    this.settings.set('footerText', '© 2025 ClassiSpot - Post Free Classifieds Ads. All Rights Reserved.');
     
     // Set default page contents
     const defaultPages = [
@@ -78,10 +78,37 @@ export class MemStorage implements IStorage {
     ];
     
     defaultPages.forEach((page) => {
+      let pageContent = `Default content for ${page} page. This can be edited by an admin.`;
+      
+      // Set specific content for the about page
+      if (page === 'about') {
+        pageContent = `
+# About ClassiSpot
+
+ClassiSpot is your premier destination for local classified advertisements. Founded in 2025, we've quickly become the go-to platform for individuals and businesses looking to buy, sell, or advertise services in their local communities.
+
+## Our Mission
+
+At ClassiSpot, we're committed to creating a safe, user-friendly marketplace where people can connect, discover great deals, and find exactly what they need. Whether you're looking to sell unwanted items, find a new apartment, advertise your business, or discover local services, ClassiSpot makes it easy and accessible.
+
+## Why Choose ClassiSpot?
+
+- **Local Focus:** All ads are organized by location, making it easy to find what you need nearby
+- **User Verification:** Enhanced security through user verification systems
+- **Free Listings:** Basic ads are always free to post
+- **Premium Options:** Boost your visibility with our affordable premium listing options
+- **Mobile Friendly:** Browse and post ads from any device
+
+We're constantly improving our platform based on user feedback. If you have suggestions or questions, please visit our Contact page.
+
+Thank you for choosing ClassiSpot for your classified ad needs!
+`;
+      }
+      
       this.pageContents.set(page, {
         id: this.pageContentCurrentId++,
         page,
-        content: `Default content for ${page} page. This can be edited by an admin.`,
+        content: pageContent,
         updatedAt: new Date(),
         updatedBy: null
       });
