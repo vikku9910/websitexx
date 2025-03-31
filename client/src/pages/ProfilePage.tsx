@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { PointTransaction } from "@shared/schema";
-import { Loader2, Wallet, ArrowUp, ArrowDown, CreditCard, FileText } from "lucide-react";
+import { Loader2, Wallet, ArrowUp, ArrowDown, CreditCard } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -84,12 +84,6 @@ export default function ProfilePage() {
                   Buy Points
                 </div>
               </a>
-              <Link href="/my-listings" className="block">
-                <div className="p-3 hover:bg-green-50 font-medium flex items-center border-l-4 border-transparent hover:border-green-500 transition-all">
-                  <FileText className="h-4 w-4 mr-2 text-green-600" />
-                  My Listings
-                </div>
-              </Link>
             </CardContent>
           </Card>
           
@@ -202,28 +196,7 @@ export default function ProfilePage() {
             </CardContent>
           </Card>
 
-          {/* My Listings Link Card */}
-          <Card id="ads">
-            <CardHeader>
-              <CardTitle>My Listings</CardTitle>
-              <CardDescription>
-                View and manage your posted advertisements
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <p className="text-gray-600 mb-6">
-                  Visit the dedicated My Listings page to view and manage all your advertisements in one place.
-                </p>
-                <Button asChild>
-                  <Link href="/my-listings">
-                    <FileText className="h-4 w-4 mr-1" />
-                    Go to My Listings
-                  </Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+
         </div>
       </div>
     </div>
