@@ -394,7 +394,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Admin: Add points to a user
+  // Admin: Manage user points (add or remove)
+  app.post("/api/admin/users/:id/points", isAdmin, async (req, res) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ error: "Invalid user ID" });
+    }
+
+    const { points, description } = req.body;
+    if (typeof points !== "number") {
+      return res.status(400).json({ error: "Points must be a number" });
+    }
+
+    try {
+      // If removing points, check if user has enough
+      if (points < 0) {
+        const user = await storage.getUser(id);
+        if (!user) {
+          return res.status(404).json({ error: "User not found" });
+        }
+
+        if ((user.points || 0) < Math.abs(points)) {
+          return res.status(400).json({ error: "User doesn't have enough points" });
+        }
+      }
+
+      // Update user points
+      const updatedUser = await storage.updateUserPoints(id, points);
+      if (!updatedUser) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Create transaction record
+      const transaction = await storage.createTransaction({
+        userId: id,
+        amount: points,
+        points: Number(updatedUser.points || 0),
+        type: points >= 0 ? "credit" : "debit",
+        description: description || (points >= 0 ? "Added by admin" : "Removed by admin")
+      });
+
+      res.json({ user: updatedUser, transaction });
+    } catch (error) {
+      console.error("Error managing user points:", error);
+      res.status(500).json({ error: "Failed to update points" });
+    }
+  });
+
+  // Keeping backward compatibility for now
   app.post("/api/admin/users/:id/add-points", isAdmin, async (req, res) => {
     const id = parseInt(req.params.id);
     if (isNaN(id)) {

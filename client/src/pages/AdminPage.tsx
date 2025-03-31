@@ -96,10 +96,20 @@ export default function AdminPage() {
   
   const updateUserPointsMutation = useMutation({
     mutationFn: async ({ userId, points }: { userId: number; points: number }) => {
-      const res = await apiRequest("POST", `/api/admin/users/${userId}/points`, { points });
-      return await res.json();
+      console.log("Updating points", { userId, points });
+      try {
+        const res = await apiRequest("POST", `/api/admin/users/${userId}/points`, { points });
+        console.log("API response:", res);
+        const data = await res.json();
+        console.log("Response data:", data);
+        return data;
+      } catch (err) {
+        console.error("Error in points mutation:", err);
+        throw err;
+      }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("Points updated successfully:", data);
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
       toast({
         title: "Success",
@@ -107,6 +117,7 @@ export default function AdminPage() {
       });
     },
     onError: (error: Error) => {
+      console.error("Points update failed:", error);
       toast({
         title: "Error",
         description: error.message,
