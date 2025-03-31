@@ -1,12 +1,11 @@
 import { useAuth } from "@/hooks/use-auth";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
-import { Ad, PointTransaction } from "@shared/schema";
-import { Loader2, Edit, Trash, Wallet, ArrowUp, ArrowDown, CreditCard, FileText } from "lucide-react";
+import { PointTransaction } from "@shared/schema";
+import { Loader2, Wallet, ArrowUp, ArrowDown, CreditCard, FileText } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -32,11 +31,6 @@ export default function ProfilePage() {
     }, 100);
   }, [location]);
   
-  const { data: myAds, isLoading: adsLoading } = useQuery<Ad[]>({
-    queryKey: ["/api/my-ads"],
-    enabled: !!user,
-  });
-  
   const { data: transactions, isLoading: transactionsLoading } = useQuery<PointTransaction[]>({
     queryKey: ["/api/user/transactions"],
     enabled: !!user,
@@ -52,33 +46,7 @@ export default function ProfilePage() {
     enabled: !!user,
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: async (adId: number) => {
-      await apiRequest("DELETE", `/api/ads/${adId}`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/my-ads"] });
-      toast({
-        title: "Ad deleted",
-        description: "Your ad has been deleted successfully.",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Failed to delete ad",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-
-  const handleDelete = (adId: number) => {
-    if (confirm("Are you sure you want to delete this ad?")) {
-      deleteMutation.mutate(adId);
-    }
-  };
-
-  const loadingState = adsLoading || transactionsLoading || settingsLoading;
+  const loadingState = transactionsLoading || settingsLoading;
   
   if (loadingState) {
     return (
@@ -116,15 +84,12 @@ export default function ProfilePage() {
                   Buy Points
                 </div>
               </a>
-              <a href="#ads" onClick={(e) => {
-                e.preventDefault();
-                document.getElementById('ads')?.scrollIntoView({ behavior: 'smooth' });
-              }} className="block">
+              <Link href="/my-listings" className="block">
                 <div className="p-3 hover:bg-green-50 font-medium flex items-center border-l-4 border-transparent hover:border-green-500 transition-all">
                   <FileText className="h-4 w-4 mr-2 text-green-600" />
                   My Listings
                 </div>
-              </a>
+              </Link>
             </CardContent>
           </Card>
           
@@ -237,81 +202,26 @@ export default function ProfilePage() {
             </CardContent>
           </Card>
 
-          {/* My Ads */}
+          {/* My Listings Link Card */}
           <Card id="ads">
             <CardHeader>
-              <CardTitle>My Ads</CardTitle>
+              <CardTitle>My Listings</CardTitle>
               <CardDescription>
-                Manage your posted advertisements
+                View and manage your posted advertisements
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {myAds && myAds.length > 0 ? (
-                <div className="space-y-4">
-                  {myAds.map((ad) => (
-                    <div key={ad.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="font-medium text-lg text-primary mb-2">
-                            <Link href={`/ad/${ad.id}`} className="hover:underline">
-                              {ad.title}
-                            </Link>
-                          </h3>
-                          <p className="text-gray-500 text-sm mb-2">
-                            Location: {ad.location}
-                          </p>
-                          <p className="text-gray-700 line-clamp-2">
-                            {ad.description.substring(0, 150)}...
-                          </p>
-                          <div className="mt-2 flex items-center space-x-2">
-                            {ad.isVerified !== null && (
-                              <Badge variant={ad.isVerified ? "default" : "outline"} className="mr-2">
-                                {ad.isVerified ? "Verified" : "Pending Verification"}
-                              </Badge>
-                            )}
-                            {ad.isActive !== null && (
-                              <Badge variant={ad.isActive ? "default" : "destructive"}>
-                                {ad.isActive ? "Active" : "Inactive"}
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex space-x-2">
-                          <Button variant="outline" size="sm" asChild>
-                            <Link href={`/edit-ad/${ad.id}`}>
-                              <Edit className="h-4 w-4 mr-1" />
-                              Edit
-                            </Link>
-                          </Button>
-                          <Button 
-                            variant="destructive" 
-                            size="sm"
-                            onClick={() => handleDelete(ad.id)}
-                          >
-                            <Trash className="h-4 w-4 mr-1" />
-                            Delete
-                          </Button>
-                        </div>
-                      </div>
-                      
-                      <div className="mt-3 text-sm text-gray-500">
-                        <div className="flex items-center space-x-3 mt-2">
-                          <span>Views: {ad.viewCount || 0}</span>
-                          <Separator orientation="vertical" className="h-4" />
-                          <span>Posted: {new Date(ad.createdAt).toLocaleDateString()}</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-gray-500 mb-4">You don't have any ads yet.</p>
-                  <Button asChild>
-                    <Link href="/post-ad">Post Your First Ad</Link>
-                  </Button>
-                </div>
-              )}
+              <div className="text-center py-8">
+                <p className="text-gray-600 mb-6">
+                  Visit the dedicated My Listings page to view and manage all your advertisements in one place.
+                </p>
+                <Button asChild>
+                  <Link href="/my-listings">
+                    <FileText className="h-4 w-4 mr-1" />
+                    Go to My Listings
+                  </Link>
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>

@@ -44,6 +44,9 @@ export default function Layout({ children }: LayoutProps) {
                 <Link href="/profile" className="text-gray-600 text-sm hover:text-[#4ebb78] mr-3">
                   Profile
                 </Link>
+                <Link href="/my-listings" className="text-gray-600 text-sm hover:text-[#4ebb78] mr-3">
+                  My Listings
+                </Link>
                 {user.isAdmin && (
                   <Link href="/admin" className="text-gray-600 text-sm hover:text-[#4ebb78] mr-3">
                     Admin Panel
