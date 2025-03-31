@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useState, useRef } from "react";
 import { AlertCircle, Home } from "lucide-react";
 import { Link } from "wouter";
+import { locations } from "@/data/locations";
 
 // Maximum file size: 5MB
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -194,7 +195,6 @@ export default function PostAdPage() {
         contactNumber: data.contactNumber,
         contactEmail: data.contactEmail,
         photoUrls,
-        age: 25, // Default age value
         isVerified: true // Set to true for demo purposes
       };
       
@@ -313,15 +313,15 @@ export default function PostAdPage() {
               </label>
               <select
                 id="location"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4ebb78]"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4ebb78] max-h-60 overflow-y-auto"
                 {...register("location")}
               >
                 <option value="">Select Location</option>
-                <option value="delhi">Delhi</option>
-                <option value="mumbai">Mumbai</option>
-                <option value="bangalore">Bangalore</option>
-                <option value="chennai">Chennai</option>
-                <option value="kolkata">Kolkata</option>
+                {locations.map((location) => (
+                  <option key={location.id} value={location.name.toLowerCase()}>
+                    {location.name}
+                  </option>
+                ))}
               </select>
               {errors.location && (
                 <p className="text-red-500 text-xs mt-1">{errors.location.message}</p>
@@ -338,9 +338,16 @@ export default function PostAdPage() {
                 {...register("category")}
               >
                 <option value="">Select Category</option>
-                <option value="escort">Escort</option>
-                <option value="massage">Massage</option>
-                <option value="call-girl">Call Girl</option>
+                <option value="services">Services</option>
+                <option value="real-estate">Real Estate</option>
+                <option value="jobs">Jobs</option>
+                <option value="electronics">Electronics</option>
+                <option value="vehicles">Vehicles</option>
+                <option value="furniture">Furniture</option>
+                <option value="fashion">Fashion</option>
+                <option value="education">Education</option>
+                <option value="pets">Pets</option>
+                <option value="hobbies">Hobbies</option>
               </select>
               {errors.category && (
                 <p className="text-red-500 text-xs mt-1">{errors.category.message}</p>
@@ -436,10 +443,11 @@ export default function PostAdPage() {
             <div className="mt-2 text-xs text-gray-600">
               <p className="font-semibold">Please note the following rules:</p>
               <ol className="list-decimal pl-5 mt-1 space-y-1">
-                <li>Putting keywords like Escort, Call Girl is not allowed</li>
-                <li>Do not put any offensive language/words</li>
-                <li>Do not insert any link or phone number in the title or description</li>
-                <li>Do not upload any adult content or pictures</li>
+                <li>Provide accurate and detailed information about your listing</li>
+                <li>Do not use offensive language or post inappropriate content</li>
+                <li>Do not insert external links in the title or description</li>
+                <li>Upload clear, high-quality photos of the actual item or service</li>
+                <li>Ensure your contact information is current and accurate</li>
               </ol>
             </div>
           </div>

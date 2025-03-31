@@ -124,11 +124,9 @@ export default function AdDetailPage() {
                 <span>{ad.location}</span>
               </div>
               
-              {ad.age && (
-                <div className="flex items-center text-gray-600">
-                  <span>Age: {ad.age}</span>
-                </div>
-              )}
+              <div className="flex items-center text-gray-600">
+                <span>Category: {ad.category || 'Unspecified'}</span>
+              </div>
               
               <div className="flex items-center text-gray-600">
                 <Calendar className="h-4 w-4 mr-1" />
@@ -214,7 +212,7 @@ export default function AdDetailPage() {
                     <h3 className="font-medium text-sm mb-1 truncate">{similarAd.title}</h3>
                     <div className="flex justify-between items-center text-xs">
                       <span className="text-gray-600">{similarAd.location}</span>
-                      {similarAd.age && <span className="text-gray-600">Age: {similarAd.age}</span>}
+                      <span className="text-gray-600">{similarAd.category || 'Unspecified'}</span>
                     </div>
                   </div>
                 </div>

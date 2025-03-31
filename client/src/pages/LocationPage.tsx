@@ -119,10 +119,10 @@ export default function LocationPage() {
                       : ad.description}
                   </p>
                   
-                  {/* Location & Age */}
+                  {/* Location & Date */}
                   <div className="flex items-center mt-2">
                     <span className="text-xs text-gray-700">
-                      {ad.location} {ad.age ? `• Age: ${ad.age}` : ''}
+                      {ad.location} {ad.createdAt ? `• Posted: ${new Date(ad.createdAt).toLocaleDateString()}` : ''}
                     </span>
                   </div>
                   
@@ -130,7 +130,7 @@ export default function LocationPage() {
                   <div className="flex items-center justify-between mt-2">
                     <div className="flex items-center">
                       <span className="text-xs px-1 py-0.5 rounded bg-green-100 text-green-800 mr-1">
-                        {ad.category || 'Escort'}
+                        {ad.category || 'Unspecified'}
                       </span>
                       {ad.isVerified && (
                         <span className="text-xs px-1 py-0.5 rounded bg-blue-100 text-blue-800">
