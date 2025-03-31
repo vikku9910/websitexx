@@ -17,6 +17,7 @@ export interface IStorage {
   makeUserAdmin(userId: number): Promise<User | undefined>;
   getAllUsers(): Promise<User[]>;
   updateUserPoints(userId: number, points: number): Promise<User | undefined>;
+  updateUser(id: number, userData: Partial<User>): Promise<User | undefined>;
   
   // Ad operations
   getAd(id: number): Promise<Ad | undefined>;
@@ -262,6 +263,15 @@ Thank you for choosing ClassiSpot for your classified ad needs!
     const newPoints = (user.points || 0) + points;
     const updatedUser = { ...user, points: newPoints };
     this.users.set(userId, updatedUser);
+    return updatedUser;
+  }
+  
+  async updateUser(id: number, userData: Partial<User>): Promise<User | undefined> {
+    const user = this.users.get(id);
+    if (!user) return undefined;
+    
+    const updatedUser = { ...user, ...userData };
+    this.users.set(id, updatedUser);
     return updatedUser;
   }
 

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -152,9 +152,9 @@ export default function AuthPage() {
                   </button>
                   
                   <div className="mt-2 text-center">
-                    <a href="#" className="text-sm text-blue-500 hover:underline">
+                    <Link href="/forgot-password" className="text-sm text-blue-500 hover:underline">
                       Forgot Password?
-                    </a>
+                    </Link>
                   </div>
                 </form>
               </div>

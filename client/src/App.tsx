@@ -7,6 +7,7 @@ import HomePage from "@/pages/HomePage";
 import PostAdPage from "@/pages/PostAdPage";
 import EditAdPage from "@/pages/EditAdPage";
 import AuthPage from "@/pages/auth-page";
+import ForgotPasswordPage from "@/pages/ForgotPasswordPage";
 import LocationPage from "@/pages/LocationPage";
 import AdDetailPage from "@/pages/AdDetailPage";
 import AboutPage from "@/pages/AboutPage";
@@ -28,6 +29,7 @@ function Router() {
       <Switch>
         <Route path="/" component={HomePage} />
         <Route path="/auth" component={AuthPage} />
+        <Route path="/forgot-password" component={ForgotPasswordPage} />
         <ProtectedRoute path="/post-ad" component={PostAdPage} />
         <ProtectedRoute path="/edit-ad/:id" component={EditAdPage} />
         <Route path="/location/:location" component={LocationPage} />

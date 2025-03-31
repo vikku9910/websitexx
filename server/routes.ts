@@ -5,7 +5,8 @@ import { setupAuth } from "./auth";
 import { insertAdSchema, insertPointTransactionSchema, insertAdPromotionPlanSchema, insertAdPromotionSchema } from "@shared/schema";
 import { z } from "zod";
 import fetch from "node-fetch";
-import crypto from "crypto";
+import { randomBytes } from "crypto";
+import { hashPassword } from "./auth";
 
 // Middleware to check if user is authenticated
 const isAuthenticated = (req: Request, res: any, next: any) => {
@@ -899,6 +900,168 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error verifying OTP:", error);
       res.status(500).json({ error: "Failed to verify OTP" });
+    }
+  });
+
+  // Password Reset Endpoints
+  
+  // Store OTP codes with expiration for password reset
+  const passwordResetOtpStore = new Map<string, { otp: string, expiresAt: Date }>();
+  
+  // Store password reset tokens with expiration
+  const resetTokenStore = new Map<string, { email: string, token: string, expiresAt: Date }>();
+
+  // Helper function to generate a reset token
+  function generateResetToken(): string {
+    return randomBytes(32).toString('hex');
+  }
+
+  // Request password reset
+  app.post("/api/request-password-reset", async (req, res) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ error: "Email is required" });
+      }
+      
+      // Check if user exists with this email
+      const user = await storage.getUserByUsername(email);
+      
+      // For security, don't disclose if user exists or not
+      // Always return success, but only actually send OTP if user exists
+      
+      if (user) {
+        // Generate and store OTP
+        const otp = generateOTP();
+        const expiresAt = new Date();
+        expiresAt.setMinutes(expiresAt.getMinutes() + 15); // OTP valid for 15 minutes
+        
+        passwordResetOtpStore.set(email, { otp, expiresAt });
+        
+        // In a real application, we would send the OTP via email
+        // For now, just log it for debugging in development 
+        console.log(`Password reset OTP for ${email}: ${otp}`);
+        
+        // Return success with dev info in development mode
+        if (process.env.NODE_ENV !== "production") {
+          return res.json({ 
+            success: true, 
+            message: "OTP sent successfully (development mode)",
+            email,
+            devInfo: `OTP is: ${otp}` 
+          });
+        }
+      }
+      
+      // Always return success to prevent email enumeration
+      res.json({ 
+        success: true, 
+        message: "If an account with this email exists, a reset code has been sent",
+        email
+      });
+    } catch (error) {
+      console.error("Error requesting password reset:", error);
+      res.status(500).json({ error: "Failed to process password reset request" });
+    }
+  });
+  
+  // Verify password reset OTP
+  app.post("/api/verify-reset-otp", async (req, res) => {
+    try {
+      const { email, otp } = req.body;
+      
+      if (!email || !otp) {
+        return res.status(400).json({ error: "Email and OTP are required" });
+      }
+      
+      const storedData = passwordResetOtpStore.get(email);
+      
+      if (!storedData) {
+        return res.status(400).json({ error: "No reset code was sent to this email or it has expired" });
+      }
+      
+      const now = new Date();
+      if (now > storedData.expiresAt) {
+        passwordResetOtpStore.delete(email);
+        return res.status(400).json({ error: "Reset code has expired" });
+      }
+      
+      if (storedData.otp !== otp) {
+        return res.status(400).json({ error: "Invalid reset code" });
+      }
+      
+      // OTP verified successfully, delete it from store
+      passwordResetOtpStore.delete(email);
+      
+      // Generate a reset token
+      const resetToken = generateResetToken();
+      const tokenExpiresAt = new Date();
+      tokenExpiresAt.setMinutes(tokenExpiresAt.getMinutes() + 15); // Token valid for 15 minutes
+      
+      // Store the reset token
+      resetTokenStore.set(resetToken, { 
+        email, 
+        token: resetToken, 
+        expiresAt: tokenExpiresAt 
+      });
+      
+      res.json({ 
+        success: true, 
+        message: "Reset code verified successfully", 
+        resetToken 
+      });
+    } catch (error) {
+      console.error("Error verifying reset code:", error);
+      res.status(500).json({ error: "Failed to verify reset code" });
+    }
+  });
+  
+  // Reset password with token
+  app.post("/api/reset-password", async (req, res) => {
+    try {
+      const { email, resetToken, password } = req.body;
+      
+      if (!email || !resetToken || !password) {
+        return res.status(400).json({ error: "Email, reset token, and new password are required" });
+      }
+      
+      // Check if token exists and is valid
+      const storedData = resetTokenStore.get(resetToken);
+      
+      if (!storedData || storedData.email !== email) {
+        return res.status(400).json({ error: "Invalid or expired reset token" });
+      }
+      
+      const now = new Date();
+      if (now > storedData.expiresAt) {
+        resetTokenStore.delete(resetToken);
+        return res.status(400).json({ error: "Reset token has expired" });
+      }
+      
+      // Check if user exists
+      const user = await storage.getUserByUsername(email);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      // Get hashed password
+      
+      // Update user's password
+      const hashedPassword = await hashPassword(password);
+      const updatedUser = await storage.updateUser(user.id, { password: hashedPassword });
+      
+      if (!updatedUser) {
+        return res.status(500).json({ error: "Failed to update password" });
+      }
+      
+      // Delete the reset token
+      resetTokenStore.delete(resetToken);
+      
+      res.json({ success: true, message: "Password has been reset successfully" });
+    } catch (error) {
+      console.error("Error resetting password:", error);
+      res.status(500).json({ error: "Failed to reset password" });
     }
   });
 
