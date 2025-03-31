@@ -84,93 +84,65 @@ export default function LocationPage() {
       ) : (
         <div className="space-y-4">
           {ads.map((ad) => (
-            <div key={ad.id} className="border border-gray-200 bg-amber-50 rounded-md p-4 hover:shadow-md transition-shadow">
-              <div className="flex gap-4">
+            <div key={ad.id} className="border border-gray-200 bg-amber-50 rounded-md overflow-hidden hover:shadow-md transition-shadow">
+              <div className="flex">
                 {/* Image Thumbnail - Left Side */}
-                <div className="w-32 h-32 flex-shrink-0">
+                <div className="w-36 h-36 flex-shrink-0">
                   {ad.photoUrls && ad.photoUrls.length > 0 ? (
                     <Link href={`/ad/${ad.id}`}>
                       <img 
                         src={ad.photoUrls[0]} 
                         alt={ad.title} 
-                        className="w-full h-full object-cover rounded-md"
+                        className="w-full h-full object-cover"
                       />
                     </Link>
                   ) : (
-                    <div className="w-full h-full bg-gray-200 flex items-center justify-center rounded-md">
+                    <div className="w-full h-full bg-gray-200 flex items-center justify-center">
                       <span className="text-gray-400">No image</span>
                     </div>
                   )}
                 </div>
                 
                 {/* Ad Info - Middle */}
-                <div className="flex-1 ml-1">
+                <div className="flex-1 p-3">
                   {/* Title - Clickable to open full profile */}
                   <Link href={`/ad/${ad.id}`}>
-                    <h2 className="text-base font-bold text-[#000000] hover:underline cursor-pointer">
+                    <h2 className="text-sm font-bold text-[#000000] hover:underline cursor-pointer">
                       {ad.title}
                     </h2>
                   </Link>
                   
-                  {/* Short Description - Only 20% */}
-                  <p className="text-sm text-gray-700 mt-1">
-                    {ad.description && ad.description.length > 50 
-                      ? ad.description.substring(0, 50) + '...' 
-                      : ad.description}
+                  {/* Short Description */}
+                  <p className="text-xs text-gray-700 mt-1 line-clamp-2">
+                    {ad.description}
                   </p>
                   
-                  {/* Phone Number and WhatsApp - Middle of Ad */}
-                  <div className="flex items-center justify-start mt-3 mb-2">
-                    <div className="flex flex-col items-start">
-                      <div className="bg-green-50 px-3 py-1 rounded-md text-center mb-1">
-                        <span className="text-sm font-semibold text-gray-800">{ad.contactNumber}</span>
-                      </div>
-                      
-                      <a 
-                        href={`https://wa.me/${ad.contactNumber}?text=Hi`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center justify-center"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <img 
-                          src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/1200px-WhatsApp.svg.png" 
-                          alt="WhatsApp" 
-                          className="w-8 h-8"
-                        />
-                      </a>
-                    </div>
-                  </div>
-                  
-                  {/* Location & Date */}
-                  <div className="flex items-center mt-2">
-                    <span className="text-xs text-gray-700">
-                      {ad.location} {ad.createdAt ? `• Posted: ${new Date(ad.createdAt).toLocaleDateString()}` : ''}
-                    </span>
-                  </div>
-                  
-                  {/* Category & Verification Tags */}
-                  <div className="flex items-center justify-between mt-2">
-                    <div className="flex items-center">
-                      <span className="text-xs px-1 py-0.5 rounded bg-green-100 text-green-800 mr-1">
-                        {ad.category || 'Unspecified'}
-                      </span>
-                      {ad.isVerified && (
-                        <span className="text-xs px-1 py-0.5 rounded bg-blue-100 text-blue-800">
-                          Verified
-                        </span>
-                      )}
-                    </div>
-                    
-                    <div></div>
+                  {/* Location & Age */}
+                  <div className="flex items-center mt-2 text-xs text-gray-700">
+                    <span>{ad.location}</span>
+                    {ad.age && <span className="ml-2">| Age {ad.age}</span>}
                   </div>
                 </div>
                 
-                {/* ID - Right Side */}
-                <div className="flex flex-col items-end justify-end">
-                  <span className="text-xs text-gray-500 mt-auto">
-                    {ad.id}
-                  </span>
+                {/* Phone & WhatsApp - Right Side */}
+                <div className="flex flex-col items-center justify-center p-3 w-32">
+                  <div className="bg-green-50 px-3 py-1 rounded-md text-center mb-1 w-full">
+                    <span className="text-sm font-semibold text-gray-800">{ad.contactNumber}</span>
+                  </div>
+                  
+                  <a 
+                    href={`https://wa.me/${ad.contactNumber}?text=Hi`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <img 
+                      src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/1200px-WhatsApp.svg.png" 
+                      alt="WhatsApp" 
+                      className="w-6 h-6"
+                    />
+                  </a>
                 </div>
               </div>
             </div>
