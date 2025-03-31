@@ -37,7 +37,7 @@ export default function Footer() {
             <span className="text-gray-600 hover:text-[#4ebb78] text-sm cursor-pointer">Privacy Policy</span>
           </Link>
         </div>
-        <div className="text-center text-gray-500 text-xs">
+        <div className="text-center text-base font-semibold bg-[#4ebb78] text-white py-2 rounded">
           {footerText}
         </div>
       </div>
