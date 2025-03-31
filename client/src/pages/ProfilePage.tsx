@@ -1,6 +1,6 @@
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { Ad, PointTransaction } from "@shared/schema";
 import { Loader2, Edit, Trash, Wallet, ArrowUp, ArrowDown, CreditCard, FileText } from "lucide-react";
@@ -10,10 +10,27 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useEffect } from "react";
 
 export default function ProfilePage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [location] = useLocation();
+  
+  // Handle hash navigation on page load
+  useEffect(() => {
+    // Wait a moment for the page to render before scrolling
+    setTimeout(() => {
+      const hash = window.location.hash;
+      if (hash) {
+        const id = hash.replace('#', '');
+        const element = document.getElementById(id);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }
+    }, 100);
+  }, [location]);
   
   const { data: myAds, isLoading: adsLoading } = useQuery<Ad[]>({
     queryKey: ["/api/my-ads"],
@@ -81,24 +98,33 @@ export default function ProfilePage() {
               <CardTitle>Menu</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              <Link href="/profile#account" className="block">
+              <a href="#account" onClick={(e) => {
+                e.preventDefault();
+                document.getElementById('account')?.scrollIntoView({ behavior: 'smooth' });
+              }} className="block">
                 <div className="p-3 hover:bg-green-50 font-medium flex items-center border-l-4 border-transparent hover:border-green-500 transition-all">
                   <Wallet className="h-4 w-4 mr-2 text-green-600" />
                   Account
                 </div>
-              </Link>
-              <Link href="/profile#buy-points" className="block">
+              </a>
+              <a href="#buy-points" onClick={(e) => {
+                e.preventDefault();
+                document.getElementById('buy-points')?.scrollIntoView({ behavior: 'smooth' });
+              }} className="block">
                 <div className="p-3 hover:bg-green-50 font-medium flex items-center border-l-4 border-transparent hover:border-green-500 transition-all">
                   <CreditCard className="h-4 w-4 mr-2 text-green-600" />
                   Buy Points
                 </div>
-              </Link>
-              <Link href="/profile#ads" className="block">
+              </a>
+              <a href="#ads" onClick={(e) => {
+                e.preventDefault();
+                document.getElementById('ads')?.scrollIntoView({ behavior: 'smooth' });
+              }} className="block">
                 <div className="p-3 hover:bg-green-50 font-medium flex items-center border-l-4 border-transparent hover:border-green-500 transition-all">
                   <FileText className="h-4 w-4 mr-2 text-green-600" />
                   My Listings
                 </div>
-              </Link>
+              </a>
             </CardContent>
           </Card>
           
