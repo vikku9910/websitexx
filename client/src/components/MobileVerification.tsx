@@ -19,6 +19,7 @@ export default function MobileVerification({
   onSkip
 }: MobileVerificationProps) {
   const [otp, setOtp] = useState("");
+  const [testOtp, setTestOtp] = useState<string | null>(null);
   const { toast } = useToast();
 
   // Real OTP verification using Fast2SMS API
@@ -29,10 +30,20 @@ export default function MobileVerification({
     },
     onSuccess: (data) => {
       if (data.success) {
-        toast({
-          title: "OTP Sent",
-          description: `A verification code has been sent to ${mobileNumber}`,
-        });
+        // Check if we're in development mode and have the OTP code
+        if (data.devInfo) {
+          setTestOtp(data.devInfo.replace("OTP is: ", ""));
+          toast({
+            title: "OTP Generated",
+            description: `Development mode: ${data.devInfo}`,
+          });
+        } else {
+          setTestOtp(null);
+          toast({
+            title: "OTP Sent",
+            description: `A verification code has been sent to ${mobileNumber}`,
+          });
+        }
       } else {
         throw new Error(data.error || "Failed to send OTP");
       }
@@ -120,6 +131,26 @@ export default function MobileVerification({
               maxLength={6}
             />
           </div>
+          
+          {/* Test OTP in development mode */}
+          {testOtp && (
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-md text-amber-800">
+              <h4 className="font-semibold text-sm">Development Mode</h4>
+              <div className="flex items-center mt-1">
+                <span className="text-sm mr-3">Test OTP:</span>
+                <code className="font-mono bg-white p-1 rounded border border-amber-200 text-amber-900">
+                  {testOtp}
+                </code>
+                <button 
+                  className="ml-2 text-xs bg-amber-100 hover:bg-amber-200 p-1 rounded"
+                  onClick={() => setOtp(testOtp)}
+                >
+                  Auto-fill
+                </button>
+              </div>
+            </div>
+          )}
+          
           {(sendOtpMutation.isPending || verifyOtpMutation.isPending) && (
             <div className="flex items-center justify-center">
               <Loader2 className="h-6 w-6 animate-spin text-primary" />
