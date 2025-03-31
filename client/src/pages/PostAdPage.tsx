@@ -6,6 +6,8 @@ import { useState, useRef } from "react";
 import { AlertCircle, Home } from "lucide-react";
 import { Link } from "wouter";
 import { locations } from "@/data/locations";
+import MobileVerification from "@/components/MobileVerification";
+import { useAuth } from "@/hooks/use-auth";
 
 // Maximum file size: 5MB
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -47,9 +49,18 @@ type AdFormValues = z.infer<typeof adSchema>;
 
 export default function PostAdPage() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showMobileVerification, setShowMobileVerification] = useState(false);
+  const [formData, setFormData] = useState<{
+    formValues: AdFormValues | null;
+    photoUrls: string[] | null;
+  }>({
+    formValues: null,
+    photoUrls: null
+  });
   
   const {
     register,
@@ -186,16 +197,46 @@ export default function PostAdPage() {
       
       const photoUrls = await Promise.all(photoPromises);
       
+      // Instead of submitting directly, show the mobile verification step
+      setFormData({
+        formValues: data,
+        photoUrls
+      });
+      
+      // Show mobile verification step
+      setShowMobileVerification(true);
+    } catch (error) {
+      console.error('Error processing ad:', error);
+      
+      // Set the error message for the UI
+      const errorMessage = error instanceof Error ? error.message : "Failed to process ad data. Please try again.";
+      setSubmitError(errorMessage);
+      
+      toast({
+        title: "Error processing ad",
+        description: errorMessage,
+        variant: "destructive"
+      });
+    }
+  };
+  
+  // Function to handle completing the mobile verification
+  const handleVerificationComplete = async () => {
+    try {
+      if (!formData.formValues || !formData.photoUrls) {
+        throw new Error("Form data is missing. Please try again.");
+      }
+      
       // Create ad submission data
       const adData = {
-        title: data.title,
-        description: data.description,
-        location: data.location,
-        category: data.category,
-        contactNumber: data.contactNumber,
-        contactEmail: data.contactEmail,
-        photoUrls,
-        isVerified: true // Set to true for demo purposes
+        title: formData.formValues.title,
+        description: formData.formValues.description,
+        location: formData.formValues.location,
+        category: formData.formValues.category,
+        contactNumber: formData.formValues.contactNumber,
+        contactEmail: formData.formValues.contactEmail,
+        photoUrls: formData.photoUrls,
+        isVerified: true // Set to true as mobile is now verified
       };
       
       // Make API call to save the ad
@@ -216,13 +257,14 @@ export default function PostAdPage() {
       
       toast({
         title: "Ad posted successfully",
-        description: "Your ad has been posted successfully.",
+        description: "Your ad has been posted successfully and your mobile number is verified.",
       });
       
       // Clean up preview URLs
       previewUrls.forEach(url => URL.revokeObjectURL(url));
       setPreviewUrls([]);
       setSelectedFiles(null);
+      setShowMobileVerification(false);
       
       // Reset the form after successful submission
       reset();
@@ -232,13 +274,83 @@ export default function PostAdPage() {
       
       // Redirect to the new ad page
       window.location.href = `/ad/${newAd.id}`;
-      
     } catch (error) {
       console.error('Error posting ad:', error);
       
       // Set the error message for the UI
       const errorMessage = error instanceof Error ? error.message : "Failed to post ad. Please try again.";
       setSubmitError(errorMessage);
+      setShowMobileVerification(false);
+      
+      toast({
+        title: "Error posting ad",
+        description: errorMessage,
+        variant: "destructive"
+      });
+    }
+  };
+  
+  // Function to handle skipping the mobile verification
+  const handleSkipVerification = async () => {
+    try {
+      if (!formData.formValues || !formData.photoUrls) {
+        throw new Error("Form data is missing. Please try again.");
+      }
+      
+      // Create ad submission data
+      const adData = {
+        title: formData.formValues.title,
+        description: formData.formValues.description,
+        location: formData.formValues.location,
+        category: formData.formValues.category,
+        contactNumber: formData.formValues.contactNumber,
+        contactEmail: formData.formValues.contactEmail,
+        photoUrls: formData.photoUrls,
+        isVerified: false // Set to false as mobile verification was skipped
+      };
+      
+      // Make API call to save the ad
+      const response = await fetch('/api/ads', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(adData),
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to post ad. Please try again.');
+      }
+      
+      const newAd = await response.json();
+      
+      toast({
+        title: "Ad posted successfully",
+        description: "Your ad has been posted successfully, but mobile verification was skipped.",
+      });
+      
+      // Clean up preview URLs
+      previewUrls.forEach(url => URL.revokeObjectURL(url));
+      setPreviewUrls([]);
+      setSelectedFiles(null);
+      setShowMobileVerification(false);
+      
+      // Reset the form after successful submission
+      reset();
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+      
+      // Redirect to the new ad page
+      window.location.href = `/ad/${newAd.id}`;
+    } catch (error) {
+      console.error('Error posting ad:', error);
+      
+      // Set the error message for the UI
+      const errorMessage = error instanceof Error ? error.message : "Failed to post ad. Please try again.";
+      setSubmitError(errorMessage);
+      setShowMobileVerification(false);
       
       toast({
         title: "Error posting ad",
@@ -259,6 +371,19 @@ export default function PostAdPage() {
           <h1 className="text-2xl font-semibold text-gray-800 text-center flex-1">Post Your Ad</h1>
           <div className="w-20"></div> {/* This empty div helps balance the layout */}
         </div>
+        
+        {/* Mobile Verification Modal */}
+        {showMobileVerification && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full">
+              <MobileVerification 
+                mobileNumber={formData.formValues?.contactNumber || ""}
+                onVerificationComplete={handleVerificationComplete}
+                onSkip={handleSkipVerification}
+              />
+            </div>
+          </div>
+        )}
         
         {/* Error Banner */}
         {submitError && (
@@ -444,20 +569,22 @@ export default function PostAdPage() {
               <p className="font-semibold">Please note the following rules:</p>
               <ol className="list-decimal pl-5 mt-1 space-y-1">
                 <li>Provide accurate and detailed information about your listing</li>
-                <li>Do not use offensive language or post inappropriate content</li>
-                <li>Do not insert external links in the title or description</li>
-                <li>Upload clear, high-quality photos of the actual item or service</li>
-                <li>Ensure your contact information is current and accurate</li>
+                <li>Do not use offensive language or post prohibited items</li>
+                <li>Upload clear, high-quality photos (JPG, PNG, or WebP format)</li>
+                <li>Maximum file size: 5MB per photo</li>
+                <li>Include {MIN_PHOTOS}-{MAX_PHOTOS} photos of your item/service</li>
               </ol>
             </div>
           </div>
           
-          <button
-            type="submit"
-            className="w-full bg-[#4ebb78] text-white py-3 rounded-md hover:bg-opacity-90 font-medium"
-          >
-            Post Your Ad
-          </button>
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              className="bg-[#4ebb78] text-white px-6 py-2 rounded-md hover:bg-[#3d9c64] transition-colors duration-200"
+            >
+              Submit Ad
+            </button>
+          </div>
         </form>
       </div>
     </div>
