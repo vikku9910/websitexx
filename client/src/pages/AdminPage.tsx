@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { User, Ad, PageContent } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
@@ -27,6 +27,7 @@ export default function AdminPage() {
   const [footerText, setFooterText] = useState("© 2025 Schloka - Post Free Classifieds Ads. All Rights Reserved.");
   const [selectedPage, setSelectedPage] = useState("about");
   const [pageContent, setPageContent] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -45,6 +46,18 @@ export default function AdminPage() {
     queryKey: ["/api/site-settings"],
     enabled: activeTab === "settings",
   });
+  
+  // Filter users based on search query
+  const filteredUsers = React.useMemo(() => {
+    return users.filter((user: User) => {
+      if (!searchQuery) return true;
+      const fullName = `${user.firstName || ''} ${user.lastName || ''}`.toLowerCase();
+      return (
+        user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        fullName.includes(searchQuery.toLowerCase())
+      );
+    });
+  }, [users, searchQuery]);
 
   // Update siteName and footerText whenever settings are updated
   useEffect(() => {
@@ -286,6 +299,27 @@ export default function AdminPage() {
 
         <TabsContent value="users" className="p-4 border rounded-lg">
           <h2 className="text-xl font-semibold mb-4">User Management</h2>
+          
+          <div className="mb-4">
+            <div className="flex items-center space-x-2">
+              <Input
+                className="max-w-sm"
+                placeholder="Search by username or name..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              {searchQuery && (
+                <Button 
+                  variant="outline" 
+                  onClick={() => setSearchQuery("")}
+                  size="sm"
+                >
+                  Clear
+                </Button>
+              )}
+            </div>
+          </div>
+          
           {usersLoading ? (
             <div className="flex justify-center py-8">Loading users...</div>
           ) : (
@@ -302,96 +336,104 @@ export default function AdminPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell>{user.id}</TableCell>
-                    <TableCell>{user.username}</TableCell>
-                    <TableCell>
-                      {user.firstName && user.lastName
-                        ? `${user.firstName} ${user.lastName}`
-                        : "N/A"}
-                    </TableCell>
-                    <TableCell className="flex items-center">
-                      <div className="flex items-center">
-                        <Wallet className="h-4 w-4 mr-1 text-primary" />
-                        <span className="font-medium">{user.points || 0}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {user.isAdmin ? (
-                        <Badge className="bg-green-600">
-                          <Shield className="w-3 h-3 mr-1" />
-                          Admin
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline">User</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        {!user.isAdmin && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="flex items-center"
-                            onClick={() => makeAdminMutation.mutate(user.id)}
-                            disabled={makeAdminMutation.isPending}
-                          >
-                            <ShieldAlert className="w-4 h-4 mr-1" />
-                            Make Admin
-                          </Button>
-                        )}
-                        
-                        <div className="flex items-center bg-slate-100 rounded-md pl-2">
-                          <Input
-                            className="w-16 h-8 text-sm border-0 bg-transparent"
-                            type="number"
-                            placeholder="0"
-                            value={pointsAmount[user.id] || ""}
-                            onChange={(e) => setPointsAmount({
-                              ...pointsAmount,
-                              [user.id]: parseInt(e.target.value) || 0
-                            })}
-                          />
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-8 px-2 text-green-600"
-                            onClick={() => {
-                              if (pointsAmount[user.id]) {
-                                updateUserPointsMutation.mutate({
-                                  userId: user.id,
-                                  points: Math.abs(pointsAmount[user.id])
-                                });
-                                setPointsAmount({...pointsAmount, [user.id]: 0});
-                              }
-                            }}
-                            disabled={updateUserPointsMutation.isPending || !pointsAmount[user.id]}
-                          >
-                            <Plus className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-8 px-2 text-red-600"
-                            onClick={() => {
-                              if (pointsAmount[user.id]) {
-                                updateUserPointsMutation.mutate({
-                                  userId: user.id,
-                                  points: -Math.abs(pointsAmount[user.id])
-                                });
-                                setPointsAmount({...pointsAmount, [user.id]: 0});
-                              }
-                            }}
-                            disabled={updateUserPointsMutation.isPending || !pointsAmount[user.id]}
-                          >
-                            <Minus className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
+                {filteredUsers.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                      No users found matching "{searchQuery}"
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  filteredUsers.map((user) => (
+                    <TableRow key={user.id}>
+                      <TableCell>{user.id}</TableCell>
+                      <TableCell>{user.username}</TableCell>
+                      <TableCell>
+                        {user.firstName && user.lastName
+                          ? `${user.firstName} ${user.lastName}`
+                          : "N/A"}
+                      </TableCell>
+                      <TableCell className="flex items-center">
+                        <div className="flex items-center">
+                          <Wallet className="h-4 w-4 mr-1 text-primary" />
+                          <span className="font-medium">{user.points || 0}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {user.isAdmin ? (
+                          <Badge className="bg-green-600">
+                            <Shield className="w-3 h-3 mr-1" />
+                            Admin
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline">User</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          {!user.isAdmin && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="flex items-center"
+                              onClick={() => makeAdminMutation.mutate(user.id)}
+                              disabled={makeAdminMutation.isPending}
+                            >
+                              <ShieldAlert className="w-4 h-4 mr-1" />
+                              Make Admin
+                            </Button>
+                          )}
+                          
+                          <div className="flex items-center bg-slate-100 rounded-md pl-2">
+                            <Input
+                              className="w-16 h-8 text-sm border-0 bg-transparent"
+                              type="number"
+                              placeholder="0"
+                              value={pointsAmount[user.id] || ""}
+                              onChange={(e) => setPointsAmount({
+                                ...pointsAmount,
+                                [user.id]: parseInt(e.target.value) || 0
+                              })}
+                            />
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-8 px-2 text-green-600"
+                              onClick={() => {
+                                if (pointsAmount[user.id]) {
+                                  updateUserPointsMutation.mutate({
+                                    userId: user.id,
+                                    points: Math.abs(pointsAmount[user.id])
+                                  });
+                                  setPointsAmount({...pointsAmount, [user.id]: 0});
+                                }
+                              }}
+                              disabled={updateUserPointsMutation.isPending || !pointsAmount[user.id]}
+                            >
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-8 px-2 text-red-600"
+                              onClick={() => {
+                                if (pointsAmount[user.id]) {
+                                  updateUserPointsMutation.mutate({
+                                    userId: user.id,
+                                    points: -Math.abs(pointsAmount[user.id])
+                                  });
+                                  setPointsAmount({...pointsAmount, [user.id]: 0});
+                                }
+                              }}
+                              disabled={updateUserPointsMutation.isPending || !pointsAmount[user.id]}
+                            >
+                              <Minus className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           )}
