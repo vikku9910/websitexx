@@ -777,7 +777,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Prepare Fast2SMS API request
-      const apiKey = process.env.FAST2SMS_API_KEY;
+      const apiKey = process.env.FAST2SMS_API_KEY || "3n5VZ4n9PPo7WKiVBm4ev9TRwRKdZBZQZrBbndP8v7PVuyyx4rEefo6XTjHV";
       
       if (!apiKey) {
         return res.status(500).json({ error: "API key not configured" });
@@ -785,40 +785,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const url = "https://www.fast2sms.com/dev/bulkV2";
       
-      // Try the OTP route first
+      // Try the OTP route first with the exact format provided
       const otpParams = new URLSearchParams({
         authorization: apiKey,
         route: "otp",
         variables_values: otp,
-        flash: "0",
-        numbers: mobileNumber
+        flash: "1", // Changed to "1" as per provided format
+        numbers: mobileNumber,
+        schedule_time: "" // Added empty schedule_time as per provided format
       });
       
       const otpApiUrl = `${url}?${otpParams.toString()}`;
       
-      // Call Fast2SMS API
-      const response = await fetch(otpApiUrl);
-      const responseData: any = await response.json();
-      
-      if (responseData && responseData.return === true) {
-        // OTP API worked
-        res.json({ success: true, message: "OTP sent successfully" });
-      } else if (responseData && responseData.status_code === 996) {
-        // OTP API needs website verification, try DLT SMS API instead
-        console.log("Website verification required. Falling back to development mode.");
+      try {
+        // Call Fast2SMS API
+        console.log("Calling Fast2SMS API with URL:", otpApiUrl);
+        const response = await fetch(otpApiUrl);
         
-        // Return success with dev info
-        res.json({ 
-          success: true, 
-          message: "OTP sent successfully (development mode)", 
-          devInfo: `OTP is: ${otp}` 
-        });
-      } else {
-        console.error("Fast2SMS API error:", responseData);
-        res.status(500).json({ 
-          error: "Failed to send OTP", 
-          details: responseData && responseData.message ? responseData.message : "Unknown error" 
-        });
+        // Log complete response for debugging
+        const responseText = await response.text();
+        console.log("Fast2SMS API raw response:", responseText);
+        
+        // Parse the response text to JSON
+        const responseData = responseText ? JSON.parse(responseText) : {};
+        console.log("Fast2SMS API parsed response:", responseData);
+        
+        if (responseData && responseData.return === true) {
+          // OTP API worked
+          res.json({ success: true, message: "OTP sent successfully" });
+        } else if (responseData && responseData.status_code === 996) {
+          // OTP API needs website verification
+          console.log("Website verification required. Falling back to development mode.");
+          
+          // Return success with dev info
+          res.json({ 
+            success: true, 
+            message: "OTP sent successfully (development mode)", 
+            devInfo: `OTP is: ${otp}` 
+          });
+        } else {
+          // Log detailed error information
+          console.error("Fast2SMS API error:", {
+            status: response.status,
+            statusText: response.statusText,
+            responseData
+          });
+          
+          // Return a more detailed error message
+          res.status(500).json({ 
+            error: "Failed to send OTP", 
+            details: responseData && responseData.message ? responseData.message : "Unknown error",
+            status_code: responseData.status_code,
+            request_id: responseData.request_id
+          });
+        }
+      } catch (apiError) {
+        console.error("Error processing Fast2SMS API response:", apiError);
+        
+        // Development mode fallback on API errors
+        if (process.env.NODE_ENV !== "production") {
+          return res.json({ 
+            success: true, 
+            message: "OTP sent successfully (development mode fallback after API error)", 
+            devInfo: `OTP is: ${otp}` 
+          });
+        }
+        
+        res.status(500).json({ error: "Failed to send OTP due to API processing error" });
       }
     } catch (error) {
       console.error("Error sending OTP:", error);
