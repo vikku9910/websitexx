@@ -125,9 +125,6 @@ export default function ProfilePage() {
           <Card className="mb-6" id="buy-points">
             <CardHeader>
               <CardTitle>Buy Points with Paytm / PhonePe, UPI</CardTitle>
-              <CardDescription>
-                Add points to your account with convenient payment methods
-              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="border rounded-md p-5 mb-4">
