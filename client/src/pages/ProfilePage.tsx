@@ -128,29 +128,29 @@ export default function ProfilePage() {
             </CardHeader>
             <CardContent>
               <div className="border rounded-md p-5 mb-4">
-                <div className="space-y-3">
-                  <p className="font-medium text-lg">₹ 1000 = 1500 points</p>
-                  <p className="font-medium text-lg">₹ 2000 = 3000 points</p>
-                  <p className="font-medium text-lg">₹ 5000 = 7500 points</p>
-                  <p className="font-medium text-lg">₹ 10000 = 18000 points</p>
-                  <p className="font-medium mt-4">Buy points in 2 easy steps</p>
-                </div>
-                
-                <div className="mt-8 space-y-4">
-                  {settings?.paymentInfo ? (
-                    <div className="payment-info whitespace-pre-wrap">
-                      {settings.paymentInfo}
+                {settings?.paymentInfo ? (
+                  <div className="payment-info whitespace-pre-wrap">
+                    {settings.paymentInfo}
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="space-y-3">
+                      <p className="font-medium text-lg">₹ 1000 = 1500 points</p>
+                      <p className="font-medium text-lg">₹ 2000 = 3000 points</p>
+                      <p className="font-medium text-lg">₹ 5000 = 7500 points</p>
+                      <p className="font-medium text-lg">₹ 10000 = 18000 points</p>
+                      <p className="font-medium mt-4">Buy points in 2 easy steps</p>
                     </div>
-                  ) : (
-                    <>
+                    
+                    <div className="mt-6">
                       <h3 className="text-lg font-semibold">To buy points for 1000,2000,3000 send screenshots to whatsapp</h3>
                       <p className="text-blue-600 font-bold">+447553078122</p>
                       
                       <h3 className="text-lg font-semibold mt-6">To buy points for 5000 and 10000 send screenshots to whatsapp</h3>
                       <p className="text-blue-600 font-bold">+447818604647</p>
-                    </>
-                  )}
-                </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
