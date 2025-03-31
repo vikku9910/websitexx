@@ -41,8 +41,11 @@ export default function Layout({ children }: LayoutProps) {
                 <span className="text-gray-600 text-sm mr-2">
                   Welcome, {user.firstName || user.username}
                 </span>
+                <Link href="/profile" className="text-gray-600 text-sm hover:text-[#4ebb78] mr-3">
+                  Profile
+                </Link>
                 {user.isAdmin && (
-                  <Link href="/admin" className="text-gray-600 text-sm hover:text-[#4ebb78] mr-2">
+                  <Link href="/admin" className="text-gray-600 text-sm hover:text-[#4ebb78] mr-3">
                     Admin Panel
                   </Link>
                 )}
