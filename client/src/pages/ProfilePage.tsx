@@ -133,11 +133,23 @@ export default function ProfilePage() {
                     {settings.paymentInfo.split('\n').map((line, index) => {
                       // Check if line contains a phone number
                       if (line.includes('+')) {
-                        return (
-                          <p key={index} className="text-blue-600 font-bold">
-                            {line}
-                          </p>
-                        );
+                        // Extract the phone number from the line
+                        const phoneNumber = line.match(/\+\d+/)?.[0];
+                        if (phoneNumber) {
+                          return (
+                            <p key={index}>
+                              {line.split(phoneNumber)[0]}
+                              <a 
+                                href={`https://wa.me/${phoneNumber.substring(1)}`} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-blue-600 font-bold hover:underline"
+                              >
+                                {phoneNumber}
+                              </a>
+                            </p>
+                          );
+                        }
                       }
                       return <p key={index}>{line}</p>;
                     })}
@@ -154,10 +166,28 @@ export default function ProfilePage() {
                     
                     <div className="mt-6">
                       <h3 className="text-lg font-semibold">To buy points for 1000,2000,3000 send screenshots to whatsapp</h3>
-                      <p className="text-blue-600 font-bold">+447553078122</p>
+                      <p>
+                        <a 
+                          href="https://wa.me/447553078122" 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-blue-600 font-bold hover:underline"
+                        >
+                          +447553078122
+                        </a>
+                      </p>
                       
                       <h3 className="text-lg font-semibold mt-6">To buy points for 5000 and 10000 send screenshots to whatsapp</h3>
-                      <p className="text-blue-600 font-bold">+447818604647</p>
+                      <p>
+                        <a 
+                          href="https://wa.me/447818604647" 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-blue-600 font-bold hover:underline"
+                        >
+                          +447818604647
+                        </a>
+                      </p>
                     </div>
                   </div>
                 )}
