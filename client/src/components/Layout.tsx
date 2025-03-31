@@ -130,9 +130,6 @@ export default function Layout({ children }: LayoutProps) {
       {/* Custom Footer Component */}
       <div className="mt-auto">
         <Footer />
-        <div className="bg-black text-white py-3 text-center text-sm">
-          © {currentYear} {siteName} - Post Free Classifieds Ads. All Rights Reserved.
-        </div>
       </div>
     </div>
   );
