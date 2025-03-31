@@ -16,7 +16,7 @@ export default function Layout({ children }: LayoutProps) {
     queryKey: ["/api/site-settings"],
   });
   
-  const siteName = settings?.siteName || "Schloka";
+  const siteName = settings?.siteName || "ClassiSpot";
   const currentYear = new Date().getFullYear();
 
   const handleLogout = () => {

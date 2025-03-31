@@ -2,11 +2,23 @@ import { useState } from "react";
 import LocationGrid from "@/components/LocationGrid";
 import CountryGrid from "@/components/CountryGrid";
 import { useLocation } from "wouter";
+import { useTitle } from "@/hooks/use-title";
+import { useQuery } from "@tanstack/react-query";
 
 export default function HomePage() {
+  // Set the document title for the home page
+  useTitle("Home");
+  
   const popularCities = ["Delhi", "Mumbai", "Kolkata", "Chennai", "Pune", "Jaipur"];
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
   const [, navigate] = useLocation();
+  
+  // Get site settings for dynamic content
+  const { data: settings } = useQuery<Record<string, string>>({
+    queryKey: ["/api/site-settings"],
+  });
+  
+  const siteName = settings?.siteName || "ClassiSpot";
 
   const handleCityClick = (city: string) => {
     // Instead of just selecting, we'll navigate to the location page
@@ -18,7 +30,7 @@ export default function HomePage() {
       {/* Hero Banner Section */}
       <div className="bg-[#4ebb78] py-10">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="text-white text-2xl font-semibold mb-2">Find Everything You Need on ClassiSpot</h1>
+          <h1 className="text-white text-2xl font-semibold mb-2">Find Everything You Need on {siteName}</h1>
           <p className="text-white text-sm">Browse thousands of local classified ads across 40+ cities for free</p>
         </div>
       </div>
@@ -52,10 +64,10 @@ export default function HomePage() {
         <div className="bg-white rounded-md shadow p-6 mb-8">
           <h2 className="text-gray-800 font-semibold text-lg mb-2">Your Trusted Local Classifieds Platform</h2>
           <p className="text-gray-600 text-sm mb-4">
-            ClassiSpot is a free platform connecting local buyers and sellers. We provide a secure marketplace for individuals and businesses to post and browse classified advertisements across multiple categories including services, real estate, jobs, electronics, vehicles, and more.
+            {siteName} is a free platform connecting local buyers and sellers. We provide a secure marketplace for individuals and businesses to post and browse classified advertisements across multiple categories including services, real estate, jobs, electronics, vehicles, and more.
           </p>
           <p className="text-gray-600 text-sm mb-4">
-            Our mission is to make buying and selling simple, safe and rewarding for everyone. Join thousands of satisfied users who find exactly what they need on ClassiSpot every day.
+            Our mission is to make buying and selling simple, safe and rewarding for everyone. Join thousands of satisfied users who find exactly what they need on {siteName} every day.
           </p>
           
           {/* Popular Categories */}

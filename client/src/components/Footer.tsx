@@ -6,7 +6,7 @@ export default function Footer() {
     queryKey: ["/api/site-settings"],
   });
   
-  const siteName = settings?.siteName || "Schloka";
+  const siteName = settings?.siteName || "ClassiSpot";
   const currentYear = new Date().getFullYear();
   
   // Use the custom footer text if available, otherwise construct a default one
