@@ -3,6 +3,7 @@ import { useParams, Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Ad } from "@shared/schema";
 import { Loader2, MessageCircle, Phone, MapPin } from "lucide-react";
+import { locations } from "@/data/locations";
 
 export default function LocationPage() {
   const { location } = useParams();
@@ -51,7 +52,7 @@ export default function LocationPage() {
           <h1 className="text-2xl font-semibold">{decodedLocation}</h1>
           <div>
             <select 
-              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4ebb78]"
+              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4ebb78] max-h-60 overflow-y-auto"
               defaultValue={decodedLocation}
               onChange={(e) => {
                 if (e.target.value) {
@@ -60,12 +61,11 @@ export default function LocationPage() {
               }}
             >
               <option value="">Select Location</option>
-              <option value="Delhi">Delhi</option>
-              <option value="Mumbai">Mumbai</option>
-              <option value="Kolkata">Kolkata</option>
-              <option value="Chennai">Chennai</option>
-              <option value="Pune">Pune</option>
-              <option value="Jaipur">Jaipur</option>
+              {locations.map((location) => (
+                <option key={location.id} value={location.name}>
+                  {location.name}
+                </option>
+              ))}
             </select>
           </div>
         </div>
