@@ -11,8 +11,8 @@ export default function Footer() {
   
   // Use the custom footer text if available, otherwise construct a default one
   const footerText = settings?.footerText 
-    ? settings.footerText.replace(/\d{4}/g, currentYear.toString()) // Replace any year with current year
-    : `© ${currentYear} ${siteName} - Post Free Classifieds Ads. All Rights Reserved.`;
+    ? settings.footerText // Don't replace the year automatically
+    : `© ${siteName} - Post Free Classifieds Ads. All Rights Reserved.`;
   
   return (
     <footer className="border-t border-gray-200 py-6">
