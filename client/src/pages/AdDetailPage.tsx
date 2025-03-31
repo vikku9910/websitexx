@@ -150,24 +150,21 @@ export default function AdDetailPage() {
             <div className="space-y-3">
               <h2 className="text-lg font-medium text-gray-800">Contact Information</h2>
               
-              <div className="flex items-center">
-                <Phone className="h-5 w-5 mr-2 text-[#4ebb78]" />
-                <a 
-                  href={`tel:${ad.contactNumber}`} 
-                  className="text-green-600 font-semibold text-lg hover:text-green-700"
-                >
-                  {ad.contactNumber}
-                </a>
+              <div className="flex flex-col items-center w-48">
+                <div className="bg-green-50 px-4 py-2 rounded-md text-center mb-2 w-full">
+                  <span className="text-base font-semibold text-gray-800">{ad.contactNumber}</span>
+                </div>
+                
                 <a 
                   href={`https://wa.me/${ad.contactNumber}?text=Hi`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="ml-2"
+                  className="flex items-center justify-center"
                 >
                   <img 
                     src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/1200px-WhatsApp.svg.png" 
                     alt="WhatsApp" 
-                    className="w-6 h-6"
+                    className="w-10 h-10"
                   />
                 </a>
               </div>

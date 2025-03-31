@@ -140,18 +140,21 @@ export default function LocationPage() {
                     </div>
                     
                     {/* Contact Number */}
-                    <div className="text-sm text-green-600 font-medium cursor-pointer">
+                    <div className="flex flex-col items-center">
+                      <div className="bg-green-50 px-3 py-1 rounded-md text-center mb-1">
+                        <span className="text-sm font-semibold text-gray-800">{ad.contactNumber}</span>
+                      </div>
+                      
                       <a 
                         href={`https://wa.me/${ad.contactNumber}?text=Hi`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center"
+                        className="flex items-center justify-center"
                       >
-                        <span className="mr-1">{ad.contactNumber}</span>
                         <img 
                           src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/1200px-WhatsApp.svg.png" 
                           alt="WhatsApp" 
-                          className="w-4 h-4"
+                          className="w-8 h-8"
                         />
                       </a>
                     </div>
