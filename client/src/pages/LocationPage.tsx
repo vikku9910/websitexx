@@ -140,8 +140,20 @@ export default function LocationPage() {
                     </div>
                     
                     {/* Contact Number */}
-                    <div className="text-xs text-green-600 font-medium">
-                      {ad.contactNumber}
+                    <div className="text-sm text-green-600 font-medium cursor-pointer">
+                      <a 
+                        href={`https://wa.me/${ad.contactNumber}?text=Hi`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center"
+                      >
+                        <span className="mr-1">{ad.contactNumber}</span>
+                        <img 
+                          src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/1200px-WhatsApp.svg.png" 
+                          alt="WhatsApp" 
+                          className="w-4 h-4"
+                        />
+                      </a>
                     </div>
                   </div>
                 </div>
@@ -149,8 +161,8 @@ export default function LocationPage() {
                 {/* WhatsApp & ID - Right Side */}
                 <div className="flex flex-col items-end justify-between gap-2">
                   <a 
-                    href={`https://wa.me/${ad.contactNumber}`} 
-                    className="flex items-center justify-center w-8 h-8"
+                    href={`https://wa.me/${ad.contactNumber}?text=Hi`} 
+                    className="flex items-center justify-center w-9 h-9 bg-green-500 rounded-full"
                     onClick={(e) => e.stopPropagation()}
                     target="_blank"
                     rel="noopener noreferrer"

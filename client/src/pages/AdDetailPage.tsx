@@ -154,9 +154,21 @@ export default function AdDetailPage() {
                 <Phone className="h-5 w-5 mr-2 text-[#4ebb78]" />
                 <a 
                   href={`tel:${ad.contactNumber}`} 
-                  className="text-gray-700 hover:text-[#4ebb78]"
+                  className="text-green-600 font-semibold text-lg hover:text-green-700"
                 >
                   {ad.contactNumber}
+                </a>
+                <a 
+                  href={`https://wa.me/${ad.contactNumber}?text=Hi`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="ml-2"
+                >
+                  <img 
+                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/1200px-WhatsApp.svg.png" 
+                    alt="WhatsApp" 
+                    className="w-6 h-6"
+                  />
                 </a>
               </div>
               
@@ -170,12 +182,16 @@ export default function AdDetailPage() {
                 </a>
                 
                 <a 
-                  href={`https://wa.me/${ad.contactNumber}`}
+                  href={`https://wa.me/${ad.contactNumber}?text=Hi`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-opacity-90 inline-flex items-center"
                 >
-                  <MessageCircle className="h-4 w-4 mr-2" />
+                  <img 
+                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/1200px-WhatsApp.svg.png" 
+                    alt="WhatsApp" 
+                    className="h-4 w-4 mr-2"
+                  />
                   WhatsApp
                 </a>
               </div>
