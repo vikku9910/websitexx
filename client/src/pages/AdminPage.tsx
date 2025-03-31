@@ -25,6 +25,7 @@ export default function AdminPage() {
   const [activeTab, setActiveTab] = useState("users");
   const [siteName, setSiteName] = useState("ClassiSpot");
   const [footerText, setFooterText] = useState("© 2025 ClassiSpot - Post Free Classifieds Ads. All Rights Reserved.");
+  const [paymentInfo, setPaymentInfo] = useState("");
   const [selectedPage, setSelectedPage] = useState("about");
   const [pageContent, setPageContent] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -63,7 +64,7 @@ export default function AdminPage() {
     });
   }, [users, searchQuery]);
 
-  // Update siteName and footerText whenever settings are updated
+  // Update siteName, footerText and paymentInfo whenever settings are updated
   useEffect(() => {
     if (settings) {
       if (settings.siteName) {
@@ -71,6 +72,9 @@ export default function AdminPage() {
       }
       if (settings.footerText) {
         setFooterText(settings.footerText);
+      }
+      if (settings.paymentInfo) {
+        setPaymentInfo(settings.paymentInfo);
       }
     }
   }, [settings]);
@@ -246,6 +250,31 @@ export default function AdminPage() {
       toast({
         title: "Success",
         description: "Footer text has been updated",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Update payment info mutation
+  const updatePaymentInfoMutation = useMutation({
+    mutationFn: async (newInfo: string) => {
+      const res = await apiRequest("POST", "/api/admin/site-settings", {
+        key: "paymentInfo",
+        value: newInfo
+      });
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/site-settings"] });
+      toast({
+        title: "Success",
+        description: "Payment information has been updated",
       });
     },
     onError: (error: Error) => {
@@ -568,6 +597,22 @@ export default function AdminPage() {
                       Use {"{year}"} to include the current year. Example: © {"{year}"} {siteName} - All Rights Reserved.
                     </p>
                   </div>
+                  
+                  <div className="space-y-2">
+                    <label htmlFor="paymentInfo" className="text-sm font-medium">
+                      Payment Information
+                    </label>
+                    <Textarea
+                      id="paymentInfo"
+                      value={paymentInfo}
+                      onChange={(e) => setPaymentInfo(e.target.value)}
+                      placeholder="Enter payment information details"
+                      className="min-h-[150px]"
+                    />
+                    <p className="text-xs text-gray-500">
+                      This information will be displayed on the user's profile page under "Buy Points" section.
+                    </p>
+                  </div>
                 </div>
               </CardContent>
               <CardFooter className="flex flex-col space-y-3">
@@ -597,6 +642,21 @@ export default function AdminPage() {
                     <>
                       <Save className="h-4 w-4 mr-2" />
                       Save Footer Text
+                    </>
+                  )}
+                </Button>
+                
+                <Button 
+                  onClick={() => updatePaymentInfoMutation.mutate(paymentInfo)}
+                  disabled={updatePaymentInfoMutation.isPending || (settings?.paymentInfo === paymentInfo)}
+                  className="w-full"
+                >
+                  {updatePaymentInfoMutation.isPending ? (
+                    "Saving Payment Information..."
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      Save Payment Information
                     </>
                   )}
                 </Button>
