@@ -126,9 +126,13 @@ export default function LocationPage() {
                 
                 {/* Phone & WhatsApp - Right Side */}
                 <div className="flex flex-col items-center justify-center p-3 w-32">
-                  <div className="bg-green-50 px-3 py-1 rounded-md text-center mb-1 w-full">
+                  <a 
+                    href={`tel:${ad.contactNumber}`}
+                    className="bg-green-50 px-3 py-1 rounded-md text-center mb-1 w-full block"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <span className="text-sm font-semibold text-gray-800">{ad.contactNumber}</span>
-                  </div>
+                  </a>
                   
                   <a 
                     href={`https://wa.me/${ad.contactNumber}?text=Hi`}

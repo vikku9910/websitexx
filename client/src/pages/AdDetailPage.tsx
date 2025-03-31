@@ -151,9 +151,12 @@ export default function AdDetailPage() {
               <h2 className="text-lg font-medium text-gray-800">Contact Information</h2>
               
               <div className="flex flex-col items-center w-48">
-                <div className="bg-green-50 px-4 py-2 rounded-md text-center mb-2 w-full">
+                <a 
+                  href={`tel:${ad.contactNumber}`}
+                  className="bg-green-50 px-4 py-2 rounded-md text-center mb-2 w-full block"
+                >
                   <span className="text-base font-semibold text-gray-800">{ad.contactNumber}</span>
-                </div>
+                </a>
                 
                 <a 
                   href={`https://wa.me/${ad.contactNumber}?text=Hi`}
