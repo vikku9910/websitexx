@@ -154,6 +154,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Partially update existing ad (for user editing)
+  app.patch("/api/ads/:id", isAuthenticated, async (req, res) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ error: "Invalid ad ID" });
+    }
+    
+    try {
+      const userId = req.user!.id;
+      const ad = await storage.getAd(id);
+      
+      if (!ad) {
+        return res.status(404).json({ error: "Ad not found" });
+      }
+      
+      // Check if the ad belongs to the current user or user is admin
+      if (ad.userId !== userId && !req.user!.isAdmin) {
+        return res.status(403).json({ error: "Unauthorized to update this ad" });
+      }
+      
+      const updatedAd = await storage.updateAd(id, req.body);
+      res.json(updatedAd);
+    } catch (error) {
+      console.error("Error updating ad:", error);
+      res.status(500).json({ error: "Failed to update ad" });
+    }
+  });
+  
   // Delete ad
   app.delete("/api/ads/:id", isAuthenticated, async (req, res) => {
     const id = parseInt(req.params.id);

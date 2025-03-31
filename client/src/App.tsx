@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import NotFound from "@/pages/not-found";
 import HomePage from "@/pages/HomePage";
 import PostAdPage from "@/pages/PostAdPage";
+import EditAdPage from "@/pages/EditAdPage";
 import AuthPage from "@/pages/auth-page";
 import LocationPage from "@/pages/LocationPage";
 import AdDetailPage from "@/pages/AdDetailPage";
@@ -28,6 +29,7 @@ function Router() {
         <Route path="/" component={HomePage} />
         <Route path="/auth" component={AuthPage} />
         <ProtectedRoute path="/post-ad" component={PostAdPage} />
+        <ProtectedRoute path="/edit-ad/:id" component={EditAdPage} />
         <Route path="/location/:location" component={LocationPage} />
         <Route path="/ad/:id" component={AdDetailPage} />
         <Route path="/about" component={AboutPage} />
