@@ -10,6 +10,7 @@ export const users = pgTable("users", {
   lastName: text("last_name"),
   mobileNumber: text("mobile_number"),
   isAdmin: boolean("is_admin").default(false),
+  points: integer("points").default(0),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
@@ -81,3 +82,22 @@ export const insertPageContentSchema = createInsertSchema(pageContents).omit({
 
 export type InsertPageContent = z.infer<typeof insertPageContentSchema>;
 export type PageContent = typeof pageContents.$inferSelect;
+
+// Point transactions schema
+export const pointTransactions = pgTable("point_transactions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  amount: integer("amount").notNull(),
+  points: integer("points").notNull(),
+  type: text("type").notNull(), // "credit", "debit", etc.
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertPointTransactionSchema = createInsertSchema(pointTransactions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertPointTransaction = z.infer<typeof insertPointTransactionSchema>;
+export type PointTransaction = typeof pointTransactions.$inferSelect;

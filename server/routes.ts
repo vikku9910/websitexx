@@ -2,7 +2,7 @@ import type { Express, Request } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
-import { insertAdSchema } from "@shared/schema";
+import { insertAdSchema, insertPointTransactionSchema } from "@shared/schema";
 import { z } from "zod";
 
 // Middleware to check if user is authenticated
@@ -377,6 +377,97 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error(`Error updating ${page} page content:`, error);
       res.status(500).json({ error: "Failed to update page content" });
+    }
+  });
+
+  // Points and transactions routes
+
+  // Get current user's transactions
+  app.get("/api/user/transactions", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const transactions = await storage.getUserTransactions(userId);
+      res.json(transactions);
+    } catch (error) {
+      console.error("Error getting user transactions:", error);
+      res.status(500).json({ error: "Failed to get transactions" });
+    }
+  });
+
+  // Admin: Add points to a user
+  app.post("/api/admin/users/:id/add-points", isAdmin, async (req, res) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ error: "Invalid user ID" });
+    }
+
+    const { points, description } = req.body;
+    if (typeof points !== "number" || points <= 0) {
+      return res.status(400).json({ error: "Points must be a positive number" });
+    }
+
+    try {
+      // Update user points
+      const updatedUser = await storage.updateUserPoints(id, points);
+      if (!updatedUser) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Create transaction record
+      const transaction = await storage.createTransaction({
+        userId: id,
+        amount: points,
+        points: Number(updatedUser.points || 0),
+        type: "credit",
+        description: description || "Added by admin"
+      });
+
+      res.json({ user: updatedUser, transaction });
+    } catch (error) {
+      console.error("Error adding points to user:", error);
+      res.status(500).json({ error: "Failed to add points" });
+    }
+  });
+
+  // Admin: Remove points from a user
+  app.post("/api/admin/users/:id/remove-points", isAdmin, async (req, res) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ error: "Invalid user ID" });
+    }
+
+    const { points, description } = req.body;
+    if (typeof points !== "number" || points <= 0) {
+      return res.status(400).json({ error: "Points must be a positive number" });
+    }
+
+    try {
+      // First, check if user has enough points
+      const user = await storage.getUser(id);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      if ((user.points || 0) < points) {
+        return res.status(400).json({ error: "User doesn't have enough points" });
+      }
+
+      // Update user points
+      const updatedUser = await storage.updateUserPoints(id, -points);
+
+      // Create transaction record
+      const transaction = await storage.createTransaction({
+        userId: id,
+        amount: -points,
+        points: Number(updatedUser!.points || 0),
+        type: "debit",
+        description: description || "Removed by admin"
+      });
+
+      res.json({ user: updatedUser, transaction });
+    } catch (error) {
+      console.error("Error removing points from user:", error);
+      res.status(500).json({ error: "Failed to remove points" });
     }
   });
 

@@ -18,7 +18,7 @@ import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertCircle, CheckCircle, Trash2, Shield, ShieldAlert, Settings, FileText, Save } from "lucide-react";
+import { AlertCircle, CheckCircle, Trash2, Shield, ShieldAlert, Settings, FileText, Save, Wallet, Plus, Minus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function AdminPage() {
@@ -81,6 +81,29 @@ export default function AdminPage() {
       toast({
         title: "Success",
         description: "User has been made an admin",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+  
+  const [pointsAmount, setPointsAmount] = useState<{ [userId: number]: number }>({});
+  
+  const updateUserPointsMutation = useMutation({
+    mutationFn: async ({ userId, points }: { userId: number; points: number }) => {
+      const res = await apiRequest("POST", `/api/admin/users/${userId}/points`, { points });
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      toast({
+        title: "Success",
+        description: "User points have been updated",
       });
     },
     onError: (error: Error) => {
@@ -262,6 +285,7 @@ export default function AdminPage() {
                   <TableHead>ID</TableHead>
                   <TableHead>Username</TableHead>
                   <TableHead>Name</TableHead>
+                  <TableHead>Points</TableHead>
                   <TableHead>Admin Status</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
@@ -276,6 +300,12 @@ export default function AdminPage() {
                         ? `${user.firstName} ${user.lastName}`
                         : "N/A"}
                     </TableCell>
+                    <TableCell className="flex items-center">
+                      <div className="flex items-center">
+                        <Wallet className="h-4 w-4 mr-1 text-primary" />
+                        <span className="font-medium">{user.points || 0}</span>
+                      </div>
+                    </TableCell>
                     <TableCell>
                       {user.isAdmin ? (
                         <Badge className="bg-green-600">
@@ -287,18 +317,67 @@ export default function AdminPage() {
                       )}
                     </TableCell>
                     <TableCell>
-                      {!user.isAdmin && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="flex items-center"
-                          onClick={() => makeAdminMutation.mutate(user.id)}
-                          disabled={makeAdminMutation.isPending}
-                        >
-                          <ShieldAlert className="w-4 h-4 mr-1" />
-                          Make Admin
-                        </Button>
-                      )}
+                      <div className="flex items-center gap-2">
+                        {!user.isAdmin && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="flex items-center"
+                            onClick={() => makeAdminMutation.mutate(user.id)}
+                            disabled={makeAdminMutation.isPending}
+                          >
+                            <ShieldAlert className="w-4 h-4 mr-1" />
+                            Make Admin
+                          </Button>
+                        )}
+                        
+                        <div className="flex items-center bg-slate-100 rounded-md pl-2">
+                          <Input
+                            className="w-16 h-8 text-sm border-0 bg-transparent"
+                            type="number"
+                            placeholder="0"
+                            value={pointsAmount[user.id] || ""}
+                            onChange={(e) => setPointsAmount({
+                              ...pointsAmount,
+                              [user.id]: parseInt(e.target.value) || 0
+                            })}
+                          />
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-8 px-2 text-green-600"
+                            onClick={() => {
+                              if (pointsAmount[user.id]) {
+                                updateUserPointsMutation.mutate({
+                                  userId: user.id,
+                                  points: Math.abs(pointsAmount[user.id])
+                                });
+                                setPointsAmount({...pointsAmount, [user.id]: 0});
+                              }
+                            }}
+                            disabled={updateUserPointsMutation.isPending || !pointsAmount[user.id]}
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-8 px-2 text-red-600"
+                            onClick={() => {
+                              if (pointsAmount[user.id]) {
+                                updateUserPointsMutation.mutate({
+                                  userId: user.id,
+                                  points: -Math.abs(pointsAmount[user.id])
+                                });
+                                setPointsAmount({...pointsAmount, [user.id]: 0});
+                              }
+                            }}
+                            disabled={updateUserPointsMutation.isPending || !pointsAmount[user.id]}
+                          >
+                            <Minus className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

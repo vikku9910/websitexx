@@ -1,5 +1,6 @@
 import { users, type User, type InsertUser, ads, type Ad, type InsertAd, 
-         siteSettings, type SiteSetting, pageContents, type PageContent } from "@shared/schema";
+         siteSettings, type SiteSetting, pageContents, type PageContent,
+         pointTransactions, type PointTransaction, type InsertPointTransaction } from "@shared/schema";
 import createMemoryStore from "memorystore";
 import session from "express-session";
 
@@ -13,6 +14,7 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   makeUserAdmin(userId: number): Promise<User | undefined>;
   getAllUsers(): Promise<User[]>;
+  updateUserPoints(userId: number, points: number): Promise<User | undefined>;
   
   // Ad operations
   getAd(id: number): Promise<Ad | undefined>;
@@ -36,6 +38,10 @@ export interface IStorage {
   setPageContent(page: string, content: string, userId: number): Promise<PageContent>;
   getAllPageContents(): Promise<PageContent[]>;
   
+  // Points and transactions
+  getUserTransactions(userId: number): Promise<PointTransaction[]>;
+  createTransaction(transaction: InsertPointTransaction): Promise<PointTransaction>;
+  
   sessionStore: session.Store;
 }
 
@@ -44,9 +50,11 @@ export class MemStorage implements IStorage {
   private ads: Map<number, Ad>;
   private settings: Map<string, string>;
   private pageContents: Map<string, PageContent>;
+  private transactions: Map<number, PointTransaction>;
   userCurrentId: number;
   adCurrentId: number;
   pageContentCurrentId: number;
+  transactionCurrentId: number;
   sessionStore: session.Store;
 
   constructor() {
@@ -54,9 +62,11 @@ export class MemStorage implements IStorage {
     this.ads = new Map();
     this.settings = new Map();
     this.pageContents = new Map();
+    this.transactions = new Map();
     this.userCurrentId = 1;
     this.adCurrentId = 1;
     this.pageContentCurrentId = 1;
+    this.transactionCurrentId = 1;
     
     // Set default site name and footer text
     this.settings.set('siteName', 'Schloka');
@@ -102,7 +112,8 @@ export class MemStorage implements IStorage {
       firstName: insertUser.firstName || null,
       lastName: insertUser.lastName || null,
       mobileNumber: insertUser.mobileNumber || null,
-      isAdmin: false
+      isAdmin: false,
+      points: 0
     } as User;
     this.users.set(id, user);
     return user;
@@ -119,6 +130,16 @@ export class MemStorage implements IStorage {
   
   async getAllUsers(): Promise<User[]> {
     return Array.from(this.users.values());
+  }
+  
+  async updateUserPoints(userId: number, points: number): Promise<User | undefined> {
+    const user = this.users.get(userId);
+    if (!user) return undefined;
+    
+    const newPoints = (user.points || 0) + points;
+    const updatedUser = { ...user, points: newPoints };
+    this.users.set(userId, updatedUser);
+    return updatedUser;
   }
 
   // Ad operations
@@ -235,6 +256,28 @@ export class MemStorage implements IStorage {
   
   async getAllPageContents(): Promise<PageContent[]> {
     return Array.from(this.pageContents.values());
+  }
+  
+  // Points and transactions
+  async getUserTransactions(userId: number): Promise<PointTransaction[]> {
+    return Array.from(this.transactions.values()).filter(
+      (transaction) => transaction.userId === userId
+    );
+  }
+  
+  async createTransaction(transaction: InsertPointTransaction): Promise<PointTransaction> {
+    const id = this.transactionCurrentId++;
+    const newTransaction: PointTransaction = {
+      id,
+      userId: transaction.userId,
+      amount: transaction.amount,
+      points: transaction.points,
+      type: transaction.type,
+      description: transaction.description || null,
+      createdAt: new Date()
+    };
+    this.transactions.set(id, newTransaction);
+    return newTransaction;
   }
 }
 

@@ -2,20 +2,26 @@ import { useAuth } from "@/hooks/use-auth";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
-import { Ad } from "@shared/schema";
-import { Loader2, Edit, Trash, CheckCircle, XCircle } from "lucide-react";
+import { Ad, PointTransaction } from "@shared/schema";
+import { Loader2, Edit, Trash, Wallet, ArrowUp, ArrowDown } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export default function ProfilePage() {
   const { user } = useAuth();
   const { toast } = useToast();
   
-  const { data: myAds, isLoading } = useQuery<Ad[]>({
+  const { data: myAds, isLoading: adsLoading } = useQuery<Ad[]>({
     queryKey: ["/api/my-ads"],
+    enabled: !!user,
+  });
+  
+  const { data: transactions, isLoading: transactionsLoading } = useQuery<PointTransaction[]>({
+    queryKey: ["/api/user/transactions"],
     enabled: !!user,
   });
 
@@ -45,7 +51,9 @@ export default function ProfilePage() {
     }
   };
 
-  if (isLoading) {
+  const loadingState = adsLoading || transactionsLoading;
+  
+  if (loadingState) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -73,10 +81,80 @@ export default function ProfilePage() {
               </div>
             </CardContent>
           </Card>
+          
+          {/* Account Balance Card */}
+          <Card className="mt-4">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg">Account Balance</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <Wallet className="mr-2 h-5 w-5 text-primary" />
+                  <span className="text-2xl font-semibold">{user?.points || 0}</span>
+                </div>
+                <Badge variant="outline">Points</Badge>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Main Content */}
         <div className="lg:col-span-3">
+          {/* Account Transactions */}
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>Transaction History</CardTitle>
+              <CardDescription>
+                Your account activity and point balance
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {transactions && transactions.length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Description</TableHead>
+                      <TableHead className="text-right">Balance</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {transactions.map((transaction) => (
+                      <TableRow key={transaction.id}>
+                        <TableCell>
+                          {new Date(transaction.createdAt).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                          <span className="flex items-center">
+                            {transaction.type === 'credit' ? (
+                              <ArrowUp className="mr-1 h-4 w-4 text-green-500" />
+                            ) : (
+                              <ArrowDown className="mr-1 h-4 w-4 text-red-500" />
+                            )}
+                            {transaction.type}
+                          </span>
+                        </TableCell>
+                        <TableCell className={transaction.amount > 0 ? 'text-green-600' : 'text-red-600'}>
+                          {transaction.amount > 0 ? '+' : ''}{transaction.amount}
+                        </TableCell>
+                        <TableCell>{transaction.description}</TableCell>
+                        <TableCell className="text-right font-medium">{transaction.points}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">No transaction history yet.</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* My Ads */}
           <Card>
             <CardHeader>
               <CardTitle>My Ads</CardTitle>
