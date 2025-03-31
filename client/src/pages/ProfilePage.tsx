@@ -130,7 +130,17 @@ export default function ProfilePage() {
               <div className="border rounded-md p-5 mb-4">
                 {settings?.paymentInfo ? (
                   <div className="payment-info whitespace-pre-wrap">
-                    {settings.paymentInfo}
+                    {settings.paymentInfo.split('\n').map((line, index) => {
+                      // Check if line contains a phone number
+                      if (line.includes('+')) {
+                        return (
+                          <p key={index} className="text-blue-600 font-bold">
+                            {line}
+                          </p>
+                        );
+                      }
+                      return <p key={index}>{line}</p>;
+                    })}
                   </div>
                 ) : (
                   <div className="space-y-4">
