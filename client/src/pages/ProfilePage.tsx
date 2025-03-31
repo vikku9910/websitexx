@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { PointTransaction } from "@shared/schema";
-import { Loader2, Wallet, ArrowUp, ArrowDown, CreditCard } from "lucide-react";
+import { Loader2, Wallet, ArrowUp, ArrowDown, CreditCard, FileText, History } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -82,6 +82,21 @@ export default function ProfilePage() {
                 <div className="p-3 hover:bg-green-50 font-medium flex items-center border-l-4 border-transparent hover:border-green-500 transition-all">
                   <CreditCard className="h-4 w-4 mr-2 text-green-600" />
                   Buy Points
+                </div>
+              </a>
+              <Link href="/my-listings" className="block">
+                <div className="p-3 hover:bg-green-50 font-medium flex items-center border-l-4 border-transparent hover:border-green-500 transition-all">
+                  <FileText className="h-4 w-4 mr-2 text-green-600" />
+                  My Listings
+                </div>
+              </Link>
+              <a href="#transactions" onClick={(e) => {
+                e.preventDefault();
+                document.getElementById('transactions')?.scrollIntoView({ behavior: 'smooth' });
+              }} className="block">
+                <div className="p-3 hover:bg-green-50 font-medium flex items-center border-l-4 border-transparent hover:border-green-500 transition-all">
+                  <History className="h-4 w-4 mr-2 text-green-600" />
+                  Transactions
                 </div>
               </a>
             </CardContent>
@@ -196,6 +211,28 @@ export default function ProfilePage() {
             </CardContent>
           </Card>
 
+          {/* My Listings Card */}
+          <Card className="mb-6" id="my-listings-card">
+            <CardHeader>
+              <CardTitle>My Listings</CardTitle>
+              <CardDescription>
+                Manage your posted advertisements
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-4">
+                <p className="text-gray-600 mb-4">
+                  View, edit, and manage all your posted advertisements in one place.
+                </p>
+                <Button asChild className="bg-[#4ebb78] hover:bg-[#3da967]">
+                  <Link href="/my-listings" className="flex items-center">
+                    <FileText className="mr-2 h-4 w-4" />
+                    Go to My Listings
+                  </Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
 
         </div>
       </div>
