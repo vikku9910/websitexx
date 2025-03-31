@@ -2,7 +2,7 @@ import type { Express, Request } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
-import { insertAdSchema, insertPointTransactionSchema } from "@shared/schema";
+import { insertAdSchema, insertPointTransactionSchema, insertAdPromotionPlanSchema, insertAdPromotionSchema } from "@shared/schema";
 import { z } from "zod";
 
 // Middleware to check if user is authenticated
@@ -543,6 +543,195 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error removing points from user:", error);
       res.status(500).json({ error: "Failed to remove points" });
+    }
+  });
+
+  // Ad Promotion Plan Routes
+  
+  // Get all promotion plans
+  app.get("/api/promotion-plans", async (_req, res) => {
+    try {
+      const plans = await storage.getActivePromotionPlans();
+      res.json(plans);
+    } catch (error) {
+      console.error("Error getting promotion plans:", error);
+      res.status(500).json({ error: "Failed to get promotion plans" });
+    }
+  });
+  
+  // Admin: Create promotion plan
+  app.post("/api/admin/promotion-plans", isAdmin, async (req, res) => {
+    try {
+      const planData = req.body;
+      
+      // Validate plan data
+      const validatedData = insertAdPromotionPlanSchema.parse(planData);
+      
+      const newPlan = await storage.createPromotionPlan(validatedData);
+      res.status(201).json(newPlan);
+    } catch (error) {
+      console.error("Error creating promotion plan:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      res.status(500).json({ error: "Failed to create promotion plan" });
+    }
+  });
+  
+  // Admin: Update promotion plan
+  app.patch("/api/admin/promotion-plans/:id", isAdmin, async (req, res) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ error: "Invalid promotion plan ID" });
+    }
+    
+    try {
+      const updatedPlan = await storage.updatePromotionPlan(id, req.body);
+      if (!updatedPlan) {
+        return res.status(404).json({ error: "Promotion plan not found" });
+      }
+      res.json(updatedPlan);
+    } catch (error) {
+      console.error("Error updating promotion plan:", error);
+      res.status(500).json({ error: "Failed to update promotion plan" });
+    }
+  });
+  
+  // Admin: Delete promotion plan
+  app.delete("/api/admin/promotion-plans/:id", isAdmin, async (req, res) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ error: "Invalid promotion plan ID" });
+    }
+    
+    try {
+      const deleted = await storage.deletePromotionPlan(id);
+      if (deleted) {
+        res.status(204).send();
+      } else {
+        res.status(404).json({ error: "Promotion plan not found" });
+      }
+    } catch (error) {
+      console.error("Error deleting promotion plan:", error);
+      res.status(500).json({ error: "Failed to delete promotion plan" });
+    }
+  });
+  
+  // Ad Promotion Routes
+  
+  // Get promotions for an ad
+  app.get("/api/ads/:id/promotions", async (req, res) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ error: "Invalid ad ID" });
+    }
+    
+    try {
+      const promotions = await storage.getAdPromotionsByAdId(id);
+      res.json(promotions);
+    } catch (error) {
+      console.error("Error getting ad promotions:", error);
+      res.status(500).json({ error: "Failed to get ad promotions" });
+    }
+  });
+  
+  // Get active promotions
+  app.get("/api/active-promotions", async (_req, res) => {
+    try {
+      const promotions = await storage.getActiveAdPromotions();
+      res.json(promotions);
+    } catch (error) {
+      console.error("Error getting active promotions:", error);
+      res.status(500).json({ error: "Failed to get active promotions" });
+    }
+  });
+  
+  // Create promotion for an ad
+  app.post("/api/ads/:id/promote", isAuthenticated, async (req, res) => {
+    const adId = parseInt(req.params.id);
+    if (isNaN(adId)) {
+      return res.status(400).json({ error: "Invalid ad ID" });
+    }
+    
+    try {
+      const userId = req.user!.id;
+      const ad = await storage.getAd(adId);
+      
+      if (!ad) {
+        return res.status(404).json({ error: "Ad not found" });
+      }
+      
+      // Check if the ad belongs to the current user
+      if (ad.userId !== userId) {
+        return res.status(403).json({ error: "Unauthorized to promote this ad" });
+      }
+      
+      const { planId } = req.body;
+      if (!planId) {
+        return res.status(400).json({ error: "Promotion plan is required" });
+      }
+      
+      // Get the plan
+      const plan = await storage.getPromotionPlan(planId);
+      if (!plan) {
+        return res.status(404).json({ error: "Promotion plan not found" });
+      }
+      
+      // Check if user has enough points
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      if ((user.points || 0) < plan.pointsCost) {
+        return res.status(400).json({ error: "Not enough points" });
+      }
+      
+      // Calculate expiration date
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + plan.durationDays);
+      
+      // Start transaction
+      
+      // Deduct points from user
+      const updatedUser = await storage.updateUserPoints(userId, -plan.pointsCost);
+      
+      // Create transaction record
+      const transaction = await storage.createTransaction({
+        userId,
+        amount: -plan.pointsCost,
+        points: Number(updatedUser!.points || 0),
+        type: "debit",
+        description: `Ad promotion: ${plan.name} for ${plan.durationDays} days`
+      });
+      
+      // Create promotion record
+      const promotion = await storage.createAdPromotion({
+        adId,
+        userId,
+        planId,
+        expiresAt,
+        pointsSpent: plan.pointsCost,
+        transactionId: transaction.id
+      });
+      
+      // Update ad with promotion status
+      const updatedAd = await storage.updateAdPromotionStatus(
+        adId, 
+        promotion.id, 
+        plan.position, 
+        expiresAt
+      );
+      
+      res.status(201).json({
+        promotion,
+        transaction,
+        ad: updatedAd
+      });
+      
+    } catch (error) {
+      console.error("Error promoting ad:", error);
+      res.status(500).json({ error: "Failed to promote ad" });
     }
   });
 

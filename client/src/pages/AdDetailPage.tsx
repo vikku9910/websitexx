@@ -1,15 +1,43 @@
 import { useParams, Link } from "wouter";
-import { useQuery } from "@tanstack/react-query";
-import { Ad } from "@shared/schema";
-import { Loader2, Phone, MapPin, Calendar, MessageCircle } from "lucide-react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { Ad, AdPromotionPlan } from "@shared/schema";
+import { Loader2, Phone, MapPin, Calendar, MessageCircle, Award, TrendingUp } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/use-auth";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { 
+  Card,
+  CardContent, 
+  CardDescription, 
+  CardHeader, 
+  CardTitle,
+  CardFooter
+} from "@/components/ui/card";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogHeader, 
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter
+} from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
 export default function AdDetailPage() {
   const { id } = useParams();
   const adId = id ? parseInt(id) : 0;
   const [activeImage, setActiveImage] = useState(0);
   const [similarAds, setSimilarAds] = useState<Ad[]>([]);
+  const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null);
+  const [promotionDialogOpen, setPromotionDialogOpen] = useState(false);
+  const { toast } = useToast();
+  const { user } = useAuth();
   
+  // Query to get ad details
   const { data: ad, isLoading, error } = useQuery<Ad>({
     queryKey: ["/api/ads", adId],
     queryFn: async () => {
@@ -20,6 +48,42 @@ export default function AdDetailPage() {
       return response.json();
     },
     enabled: !!adId,
+  });
+  
+  // Query to get promotion plans
+  const { data: promotionPlans = [], isLoading: plansLoading } = useQuery<AdPromotionPlan[]>({
+    queryKey: ["/api/promotion-plans"],
+    queryFn: async () => {
+      const response = await fetch("/api/promotion-plans");
+      if (!response.ok) {
+        throw new Error("Failed to load promotion plans");
+      }
+      return response.json();
+    },
+    enabled: Boolean(user && ad && user.id === ad.userId && ad.isVerified), // Only load if user owns the ad and it's verified
+  });
+  
+  // Mutation to promote ad
+  const promoteMutation = useMutation({
+    mutationFn: async (planId: number) => {
+      const res = await apiRequest("POST", `/api/ads/${adId}/promote`, { planId });
+      return await res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Ad promoted successfully",
+        description: "Your ad will now get more visibility!",
+      });
+      setPromotionDialogOpen(false);
+      queryClient.invalidateQueries({ queryKey: ["/api/ads", adId] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Promotion failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
   });
   
   // Fetch similar ads based on location
@@ -198,6 +262,134 @@ export default function AdDetailPage() {
             </div>
           </div>
         </div>
+        
+        {/* Promotion Status or Button */}
+        {ad.promotionId && ad.promotionPosition && ad.promotionExpiresAt && (
+          <div className="p-4 bg-amber-50 border-t border-amber-100 flex items-center gap-2">
+            <Award className="text-amber-500" />
+            <div>
+              <p className="font-medium text-amber-800">
+                This ad is promoted as {ad.promotionPosition === 'rank1' ? 'Top Position' : 'Top 10'}
+              </p>
+              <p className="text-sm text-amber-700">
+                Promotion ends on {new Date(ad.promotionExpiresAt).toLocaleDateString()}
+              </p>
+            </div>
+          </div>
+        )}
+        
+        {/* Promotion Button */}
+        {user && ad.userId === user.id && ad.isVerified && !ad.promotionId && (
+          <div className="p-4 bg-gray-50 border-t border-gray-100">
+            <Dialog open={promotionDialogOpen} onOpenChange={setPromotionDialogOpen}>
+              <DialogTrigger asChild>
+                <Button 
+                  className="bg-amber-500 hover:bg-amber-600 text-white" 
+                  onClick={() => setPromotionDialogOpen(true)}
+                >
+                  <TrendingUp className="mr-2 h-4 w-4" />
+                  Promote this Ad
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Promote Your Ad</DialogTitle>
+                  <DialogDescription>
+                    Increase visibility and reach more potential customers by promoting your ad.
+                  </DialogDescription>
+                </DialogHeader>
+                
+                {plansLoading ? (
+                  <div className="flex justify-center py-4">
+                    <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+                  </div>
+                ) : promotionPlans && promotionPlans.length > 0 ? (
+                  <div className="py-4">
+                    <Label className="mb-2 block">Select a promotion plan:</Label>
+                    <RadioGroup 
+                      value={selectedPlanId?.toString() || ""} 
+                      onValueChange={(value) => setSelectedPlanId(parseInt(value))}
+                      className="grid gap-4"
+                    >
+                      {promotionPlans.map((plan) => (
+                        <div key={plan.id} className="flex items-start space-x-3">
+                          <RadioGroupItem value={plan.id.toString()} id={`plan-${plan.id}`} className="mt-1" />
+                          <Label 
+                            htmlFor={`plan-${plan.id}`} 
+                            className="flex-1 cursor-pointer"
+                          >
+                            <Card className={selectedPlanId === plan.id ? "border-amber-500" : ""}>
+                              <CardHeader className="pb-2">
+                                <CardTitle className="text-base flex justify-between">
+                                  <span>{plan.name} - {plan.durationDays} days</span>
+                                  <span className="text-amber-600">{plan.pointsCost} points</span>
+                                </CardTitle>
+                                <CardDescription className="text-xs">
+                                  Position: {plan.position === 'rank1' ? 'Top Position' : 'Top 10'}
+                                </CardDescription>
+                              </CardHeader>
+                              <CardContent className="pt-0 text-sm">
+                                <p>{plan.description}</p>
+                              </CardContent>
+                            </Card>
+                          </Label>
+                        </div>
+                      ))}
+                    </RadioGroup>
+                    
+                    {user && (
+                      <div className="mt-4 px-4 py-2 bg-gray-50 rounded text-sm">
+                        <p className="font-medium">Your current balance: {user.points || 0} points</p>
+                        {selectedPlanId !== null && (
+                          <p className={(user.points || 0) < (promotionPlans.find(p => p.id === selectedPlanId)?.pointsCost || 0) 
+                            ? "text-red-500" : "text-green-600"}>
+                            {(user.points || 0) < (promotionPlans.find(p => p.id === selectedPlanId)?.pointsCost || 0)
+                              ? "Insufficient points for this plan"
+                              : "You have enough points for this plan"}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="py-4 text-center text-gray-500">
+                    No promotion plans are currently available.
+                  </div>
+                )}
+                
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    onClick={() => setPromotionDialogOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      if (selectedPlanId !== null) promoteMutation.mutate(selectedPlanId);
+                    }}
+                    disabled={
+                      selectedPlanId === null || 
+                      promoteMutation.isPending || 
+                      (user && selectedPlanId !== null && promotionPlans.length > 0 && 
+                        (user.points || 0) < (promotionPlans.find(p => p.id === selectedPlanId)?.pointsCost || 0))
+                    }
+                    className={promoteMutation.isPending ? "opacity-70" : ""}
+                  >
+                    {promoteMutation.isPending ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Processing
+                      </>
+                    ) : (
+                      "Promote Ad"
+                    )}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
+        )}
       </div>
       
       {/* Similar Ads Section */}

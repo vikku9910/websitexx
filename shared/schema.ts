@@ -24,6 +24,45 @@ export const insertUserSchema = createInsertSchema(users).pick({
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 
+// Ad Promotion Plans model - controlled by admin
+export const adPromotionPlans = pgTable("ad_promotion_plans", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  durationDays: integer("duration_days").notNull(),
+  position: text("position").notNull(),
+  pointsCost: integer("points_cost").notNull(),
+  description: text("description").notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  sortOrder: integer("sort_order").default(0).notNull(),
+});
+
+export const insertAdPromotionPlanSchema = createInsertSchema(adPromotionPlans).omit({
+  id: true,
+});
+
+export type InsertAdPromotionPlan = z.infer<typeof insertAdPromotionPlanSchema>;
+export type AdPromotionPlan = typeof adPromotionPlans.$inferSelect;
+
+// Ad Promotions tracking model
+export const adPromotions = pgTable("ad_promotions", {
+  id: serial("id").primaryKey(),
+  adId: integer("ad_id").notNull(),
+  userId: integer("user_id").notNull(),
+  planId: integer("plan_id").notNull(),
+  startedAt: timestamp("started_at").defaultNow().notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  pointsSpent: integer("points_spent").notNull(),
+  transactionId: integer("transaction_id"),
+});
+
+export const insertAdPromotionSchema = createInsertSchema(adPromotions).omit({
+  id: true,
+  startedAt: true,
+});
+
+export type InsertAdPromotion = z.infer<typeof insertAdPromotionSchema>;
+export type AdPromotion = typeof adPromotions.$inferSelect;
+
 export const ads = pgTable("ads", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
@@ -39,12 +78,19 @@ export const ads = pgTable("ads", {
   isVerified: boolean("is_verified").default(false),
   isActive: boolean("is_active").default(true),
   viewCount: integer("view_count").default(0),
+  // Promotion fields
+  promotionId: integer("promotion_id"),
+  promotionExpiresAt: timestamp("promotion_expires_at"),
+  promotionPosition: text("promotion_position"),
 });
 
 export const insertAdSchema = createInsertSchema(ads).omit({
   id: true,
   createdAt: true,
   viewCount: true,
+  promotionId: true,
+  promotionExpiresAt: true,
+  promotionPosition: true,
 });
 
 export type InsertAd = z.infer<typeof insertAdSchema>;

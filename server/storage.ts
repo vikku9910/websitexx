@@ -1,6 +1,8 @@
 import { users, type User, type InsertUser, ads, type Ad, type InsertAd, 
          siteSettings, type SiteSetting, pageContents, type PageContent,
-         pointTransactions, type PointTransaction, type InsertPointTransaction } from "@shared/schema";
+         pointTransactions, type PointTransaction, type InsertPointTransaction,
+         adPromotionPlans, type AdPromotionPlan, type InsertAdPromotionPlan,
+         adPromotions, type AdPromotion, type InsertAdPromotion } from "@shared/schema";
 import createMemoryStore from "memorystore";
 import session from "express-session";
 
@@ -28,6 +30,22 @@ export interface IStorage {
   verifyAd(id: number): Promise<Ad | undefined>;
   toggleAdActive(id: number, isActive: boolean): Promise<Ad | undefined>;
   
+  // Ad Promotion Plans operations
+  getPromotionPlan(id: number): Promise<AdPromotionPlan | undefined>;
+  getAllPromotionPlans(): Promise<AdPromotionPlan[]>;
+  getActivePromotionPlans(): Promise<AdPromotionPlan[]>;
+  createPromotionPlan(plan: InsertAdPromotionPlan): Promise<AdPromotionPlan>;
+  updatePromotionPlan(id: number, plan: Partial<AdPromotionPlan>): Promise<AdPromotionPlan | undefined>;
+  deletePromotionPlan(id: number): Promise<boolean>;
+  
+  // Ad Promotions operations
+  getAdPromotion(id: number): Promise<AdPromotion | undefined>;
+  getAdPromotionsByAdId(adId: number): Promise<AdPromotion[]>;
+  getAdPromotionsByUserId(userId: number): Promise<AdPromotion[]>;
+  createAdPromotion(promotion: InsertAdPromotion): Promise<AdPromotion>;
+  updateAdPromotionStatus(adId: number, promotionId: number | null, position: string | null, expiresAt: Date | null): Promise<Ad | undefined>;
+  getActiveAdPromotions(): Promise<AdPromotion[]>;
+  
   // Site settings operations
   getSetting(key: string): Promise<string | null>;
   setSetting(key: string, value: string): Promise<void>;
@@ -51,10 +69,14 @@ export class MemStorage implements IStorage {
   private settings: Map<string, string>;
   private pageContents: Map<string, PageContent>;
   private transactions: Map<number, PointTransaction>;
+  private promotionPlans: Map<number, AdPromotionPlan>;
+  private adPromotions: Map<number, AdPromotion>;
   userCurrentId: number;
   adCurrentId: number;
   pageContentCurrentId: number;
   transactionCurrentId: number;
+  promotionPlanCurrentId: number;
+  adPromotionCurrentId: number;
   sessionStore: session.Store;
 
   constructor() {
@@ -63,14 +85,92 @@ export class MemStorage implements IStorage {
     this.settings = new Map();
     this.pageContents = new Map();
     this.transactions = new Map();
+    this.promotionPlans = new Map();
+    this.adPromotions = new Map();
     this.userCurrentId = 1;
     this.adCurrentId = 1;
     this.pageContentCurrentId = 1;
     this.transactionCurrentId = 1;
+    this.promotionPlanCurrentId = 1;
+    this.adPromotionCurrentId = 1;
+    this.sessionStore = new MemoryStore({
+      checkPeriod: 86400000, // Clear expired sessions after one day
+    });
     
     // Set default site name and footer text
     this.settings.set('siteName', 'ClassiSpot');
     this.settings.set('footerText', '© 2025 ClassiSpot - Post Free Classifieds Ads. All Rights Reserved.');
+    
+    // Set default promotion plans
+    this.createPromotionPlan({
+      name: "Top Position",
+      durationDays: 1,
+      position: "rank1",
+      pointsCost: 500,
+      description: "Your ad will appear at the very top of listings for 1 day",
+      isActive: true,
+      sortOrder: 1
+    });
+    
+    this.createPromotionPlan({
+      name: "Top Position",
+      durationDays: 3,
+      position: "rank1",
+      pointsCost: 1200,
+      description: "Your ad will appear at the very top of listings for 3 days",
+      isActive: true,
+      sortOrder: 2
+    });
+    
+    this.createPromotionPlan({
+      name: "Top Position",
+      durationDays: 7,
+      position: "rank1",
+      pointsCost: 2500,
+      description: "Your ad will appear at the very top of listings for 7 days",
+      isActive: true,
+      sortOrder: 3
+    });
+    
+    this.createPromotionPlan({
+      name: "Top 10",
+      durationDays: 1,
+      position: "top10",
+      pointsCost: 100,
+      description: "Your ad will appear in the top 10 listings for 1 day",
+      isActive: true,
+      sortOrder: 4
+    });
+    
+    this.createPromotionPlan({
+      name: "Top 10",
+      durationDays: 3,
+      position: "top10",
+      pointsCost: 250,
+      description: "Your ad will appear in the top 10 listings for 3 days",
+      isActive: true,
+      sortOrder: 5
+    });
+    
+    this.createPromotionPlan({
+      name: "Top 10",
+      durationDays: 7,
+      position: "top10",
+      pointsCost: 500,
+      description: "Your ad will appear in the top 10 listings for 7 days",
+      isActive: true,
+      sortOrder: 6
+    });
+    
+    this.createPromotionPlan({
+      name: "Top 10",
+      durationDays: 15,
+      position: "top10",
+      pointsCost: 900,
+      description: "Your ad will appear in the top 10 listings for 15 days",
+      isActive: true,
+      sortOrder: 7
+    });
     
     // Set default page contents
     const defaultPages = [
@@ -112,10 +212,6 @@ Thank you for choosing ClassiSpot for your classified ad needs!
         updatedAt: new Date(),
         updatedBy: null
       });
-    });
-    
-    this.sessionStore = new MemoryStore({
-      checkPeriod: 86400000,
     });
   }
 
@@ -196,6 +292,9 @@ Thank you for choosing ClassiSpot for your classified ad needs!
       isActive: true,
       isVerified: false,
       age: insertAd.age || null,
+      promotionId: null,
+      promotionExpiresAt: null,
+      promotionPosition: null
     };
     this.ads.set(id, ad);
     return ad;
@@ -305,6 +404,104 @@ Thank you for choosing ClassiSpot for your classified ad needs!
     };
     this.transactions.set(id, newTransaction);
     return newTransaction;
+  }
+  
+  // Ad Promotion Plans operations
+  async getPromotionPlan(id: number): Promise<AdPromotionPlan | undefined> {
+    return this.promotionPlans.get(id);
+  }
+  
+  async getAllPromotionPlans(): Promise<AdPromotionPlan[]> {
+    return Array.from(this.promotionPlans.values());
+  }
+  
+  async getActivePromotionPlans(): Promise<AdPromotionPlan[]> {
+    return Array.from(this.promotionPlans.values()).filter(
+      plan => plan.isActive
+    ).sort((a, b) => a.sortOrder - b.sortOrder);
+  }
+  
+  async createPromotionPlan(plan: InsertAdPromotionPlan): Promise<AdPromotionPlan> {
+    const id = this.promotionPlanCurrentId++;
+    const newPlan: AdPromotionPlan = {
+      id,
+      name: plan.name,
+      durationDays: plan.durationDays,
+      position: plan.position,
+      pointsCost: plan.pointsCost,
+      description: plan.description,
+      isActive: plan.isActive !== undefined ? plan.isActive : true,
+      sortOrder: plan.sortOrder !== undefined ? plan.sortOrder : 0
+    };
+    this.promotionPlans.set(id, newPlan);
+    return newPlan;
+  }
+  
+  async updatePromotionPlan(id: number, planUpdate: Partial<AdPromotionPlan>): Promise<AdPromotionPlan | undefined> {
+    const existingPlan = this.promotionPlans.get(id);
+    if (!existingPlan) return undefined;
+    
+    const updatedPlan = { ...existingPlan, ...planUpdate };
+    this.promotionPlans.set(id, updatedPlan);
+    return updatedPlan;
+  }
+  
+  async deletePromotionPlan(id: number): Promise<boolean> {
+    return this.promotionPlans.delete(id);
+  }
+  
+  // Ad Promotions operations
+  async getAdPromotion(id: number): Promise<AdPromotion | undefined> {
+    return this.adPromotions.get(id);
+  }
+  
+  async getAdPromotionsByAdId(adId: number): Promise<AdPromotion[]> {
+    return Array.from(this.adPromotions.values()).filter(
+      promo => promo.adId === adId
+    );
+  }
+  
+  async getAdPromotionsByUserId(userId: number): Promise<AdPromotion[]> {
+    return Array.from(this.adPromotions.values()).filter(
+      promo => promo.userId === userId
+    );
+  }
+  
+  async createAdPromotion(promotion: InsertAdPromotion): Promise<AdPromotion> {
+    const id = this.adPromotionCurrentId++;
+    const newPromotion: AdPromotion = {
+      id,
+      adId: promotion.adId,
+      userId: promotion.userId,
+      planId: promotion.planId,
+      startedAt: new Date(),
+      expiresAt: promotion.expiresAt,
+      pointsSpent: promotion.pointsSpent,
+      transactionId: promotion.transactionId || null
+    };
+    this.adPromotions.set(id, newPromotion);
+    return newPromotion;
+  }
+  
+  async updateAdPromotionStatus(adId: number, promotionId: number | null, position: string | null, expiresAt: Date | null): Promise<Ad | undefined> {
+    const ad = this.ads.get(adId);
+    if (!ad) return undefined;
+    
+    const updatedAd = { 
+      ...ad, 
+      promotionId, 
+      promotionPosition: position, 
+      promotionExpiresAt: expiresAt 
+    };
+    this.ads.set(adId, updatedAd);
+    return updatedAd;
+  }
+  
+  async getActiveAdPromotions(): Promise<AdPromotion[]> {
+    const now = new Date();
+    return Array.from(this.adPromotions.values()).filter(
+      promo => promo.expiresAt > now
+    );
   }
 }
 
