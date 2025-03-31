@@ -3,11 +3,21 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    scroll-behavior: smooth;
+    scroll-padding-top: 2rem;
+  }
+  
   * {
     @apply border-border;
   }
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
+  }
+  
+  /* Offset for anchor links to account for fixed headers */
+  [id] {
+    scroll-margin-top: 100px;
   }
 }

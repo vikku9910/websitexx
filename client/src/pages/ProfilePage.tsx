@@ -71,19 +71,29 @@ export default function ProfilePage() {
               <CardTitle>Menu</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="bg-primary text-white p-3 font-medium">
-                My Listings
-              </div>
-              <div className="p-3 hover:bg-gray-100">
-                <Link href="/profile" className="block">
-                  Account
-                </Link>
-              </div>
+              <Link href="/profile#account" className="block">
+                <div className="p-3 hover:bg-green-50 font-medium flex items-center border-l-4 border-transparent hover:border-green-500 transition-all">
+                  <Wallet className="h-4 w-4 mr-2 text-green-600" />
+                  Account Balance
+                </div>
+              </Link>
+              <Link href="/profile#transactions" className="block">
+                <div className="p-3 hover:bg-green-50 font-medium flex items-center border-l-4 border-transparent hover:border-green-500 transition-all">
+                  <ArrowUp className="h-4 w-4 mr-2 text-green-600" />
+                  Transaction History
+                </div>
+              </Link>
+              <Link href="/profile#ads" className="block">
+                <div className="p-3 hover:bg-green-50 font-medium flex items-center border-l-4 border-transparent hover:border-green-500 transition-all">
+                  <Edit className="h-4 w-4 mr-2 text-green-600" />
+                  My Listings
+                </div>
+              </Link>
             </CardContent>
           </Card>
           
           {/* Account Balance Card */}
-          <Card className="mt-4">
+          <Card className="mt-4" id="account">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg">Account Balance</CardTitle>
             </CardHeader>
@@ -102,7 +112,7 @@ export default function ProfilePage() {
         {/* Main Content */}
         <div className="lg:col-span-3">
           {/* Account Transactions */}
-          <Card className="mb-6">
+          <Card className="mb-6" id="transactions">
             <CardHeader>
               <CardTitle>Transaction History</CardTitle>
               <CardDescription>
@@ -155,7 +165,7 @@ export default function ProfilePage() {
           </Card>
 
           {/* My Ads */}
-          <Card>
+          <Card id="ads">
             <CardHeader>
               <CardTitle>My Ads</CardTitle>
               <CardDescription>
