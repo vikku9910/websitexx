@@ -4,6 +4,8 @@ import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { insertAdSchema, insertPointTransactionSchema, insertAdPromotionPlanSchema, insertAdPromotionSchema } from "@shared/schema";
 import { z } from "zod";
+import fetch from "node-fetch";
+import crypto from "crypto";
 
 // Middleware to check if user is authenticated
 const isAuthenticated = (req: Request, res: any, next: any) => {
@@ -732,6 +734,104 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error promoting ad:", error);
       res.status(500).json({ error: "Failed to promote ad" });
+    }
+  });
+
+  // OTP verification endpoints
+  
+  // Store OTP codes in memory (in a real application, use a database)
+  const otpStore = new Map<string, { otp: string, expiresAt: Date }>();
+
+  // Generate a random 6-digit OTP
+  function generateOTP(): string {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  }
+
+  // Send OTP via Fast2SMS
+  app.post("/api/send-otp", async (req, res) => {
+    try {
+      const { mobileNumber } = req.body;
+      
+      if (!mobileNumber || !/^[6-9]\d{9}$/.test(mobileNumber)) {
+        return res.status(400).json({ error: "Invalid mobile number format. Must be a 10-digit Indian mobile number." });
+      }
+      
+      // Generate a new OTP
+      const otp = generateOTP();
+      
+      // Store the OTP (expires in 10 minutes)
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+      otpStore.set(mobileNumber, { otp, expiresAt });
+      
+      // Prepare Fast2SMS API request
+      const apiKey = process.env.FAST2SMS_API_KEY;
+      
+      if (!apiKey) {
+        return res.status(500).json({ error: "API key not configured" });
+      }
+      
+      const url = "https://www.fast2sms.com/dev/bulkV2";
+      const params = new URLSearchParams({
+        authorization: apiKey,
+        route: "otp",
+        variables_values: otp,
+        flash: "0",
+        numbers: mobileNumber
+      });
+      
+      const apiUrl = `${url}?${params.toString()}`;
+      
+      // Call Fast2SMS API
+      const response = await fetch(apiUrl);
+      const responseData: any = await response.json();
+      
+      if (responseData && responseData.return === true) {
+        res.json({ success: true, message: "OTP sent successfully" });
+      } else {
+        console.error("Fast2SMS API error:", responseData);
+        res.status(500).json({ 
+          error: "Failed to send OTP", 
+          details: responseData && responseData.message ? responseData.message : "Unknown error" 
+        });
+      }
+    } catch (error) {
+      console.error("Error sending OTP:", error);
+      res.status(500).json({ error: "Failed to send OTP" });
+    }
+  });
+  
+  // Verify OTP
+  app.post("/api/verify-otp", (req, res) => {
+    try {
+      const { mobileNumber, otp } = req.body;
+      
+      if (!mobileNumber || !otp) {
+        return res.status(400).json({ error: "Mobile number and OTP are required" });
+      }
+      
+      const storedData = otpStore.get(mobileNumber);
+      
+      if (!storedData) {
+        return res.status(400).json({ error: "No OTP was sent to this number or it has expired" });
+      }
+      
+      const now = new Date();
+      if (now > storedData.expiresAt) {
+        otpStore.delete(mobileNumber);
+        return res.status(400).json({ error: "OTP has expired" });
+      }
+      
+      if (storedData.otp !== otp) {
+        return res.status(400).json({ error: "Invalid OTP" });
+      }
+      
+      // OTP verified successfully, delete it from store
+      otpStore.delete(mobileNumber);
+      
+      res.json({ success: true, message: "OTP verified successfully" });
+    } catch (error) {
+      console.error("Error verifying OTP:", error);
+      res.status(500).json({ error: "Failed to verify OTP" });
     }
   });
 

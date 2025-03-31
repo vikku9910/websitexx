@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Loader2 } from "lucide-react";
 
 interface MobileVerificationProps {
   mobileNumber: string;
@@ -20,19 +21,21 @@ export default function MobileVerification({
   const [otp, setOtp] = useState("");
   const { toast } = useToast();
 
-  // Mock OTP verification
-  // In a real implementation, this would send an actual OTP to the user's phone
+  // Real OTP verification using Fast2SMS API
   const sendOtpMutation = useMutation({
     mutationFn: async (phone: string) => {
-      // This would be an actual API call to send OTP in production
-      // For now, we'll simulate the process
-      return { success: true, message: "OTP sent successfully" };
+      const res = await apiRequest("POST", "/api/send-otp", { mobileNumber: phone });
+      return await res.json();
     },
-    onSuccess: () => {
-      toast({
-        title: "OTP Sent",
-        description: `A verification code has been sent to ${mobileNumber}`,
-      });
+    onSuccess: (data) => {
+      if (data.success) {
+        toast({
+          title: "OTP Sent",
+          description: `A verification code has been sent to ${mobileNumber}`,
+        });
+      } else {
+        throw new Error(data.error || "Failed to send OTP");
+      }
     },
     onError: (error: Error) => {
       toast({
@@ -46,16 +49,22 @@ export default function MobileVerification({
   // Verify OTP
   const verifyOtpMutation = useMutation({
     mutationFn: async (code: string) => {
-      // This would be an actual API call to verify OTP in production
-      // For now, we'll simulate the process - any code will be accepted
-      return { success: true };
-    },
-    onSuccess: () => {
-      toast({
-        title: "Verification Successful",
-        description: "Your mobile number has been verified successfully",
+      const res = await apiRequest("POST", "/api/verify-otp", { 
+        mobileNumber, 
+        otp: code 
       });
-      onVerificationComplete();
+      return await res.json();
+    },
+    onSuccess: (data) => {
+      if (data.success) {
+        toast({
+          title: "Verification Successful",
+          description: "Your mobile number has been verified successfully",
+        });
+        onVerificationComplete();
+      } else {
+        throw new Error(data.error || "Verification failed");
+      }
     },
     onError: (error: Error) => {
       toast({
@@ -68,7 +77,9 @@ export default function MobileVerification({
 
   // Auto-send OTP on component mount
   React.useEffect(() => {
-    sendOtpMutation.mutate(mobileNumber);
+    if (mobileNumber && mobileNumber.length === 10) {
+      sendOtpMutation.mutate(mobileNumber);
+    }
   }, [mobileNumber]);
 
   const handleVerify = () => {
@@ -84,6 +95,10 @@ export default function MobileVerification({
     verifyOtpMutation.mutate(otp);
   };
 
+  const handleResendOTP = () => {
+    sendOtpMutation.mutate(mobileNumber);
+  };
+
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
@@ -92,27 +107,54 @@ export default function MobileVerification({
       <CardContent>
         <div className="space-y-4">
           <p className="text-gray-600">
-            Please insert the OTP we have sent you on you mobile Number
+            Please insert the OTP we have sent you on your mobile number
           </p>
           <p className="font-medium">{mobileNumber}</p>
           <div>
             <Input 
               type="text" 
-              placeholder="Enter OTP" 
+              placeholder="Enter 6-digit OTP" 
               value={otp} 
               onChange={(e) => setOtp(e.target.value)} 
               className="w-full"
               maxLength={6}
             />
           </div>
+          {(sendOtpMutation.isPending || verifyOtpMutation.isPending) && (
+            <div className="flex items-center justify-center">
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              <span className="ml-2">
+                {sendOtpMutation.isPending ? "Sending OTP..." : "Verifying..."}
+              </span>
+            </div>
+          )}
+          <div className="text-sm">
+            <button 
+              onClick={handleResendOTP} 
+              className="text-primary hover:underline"
+              disabled={sendOtpMutation.isPending}
+            >
+              Resend OTP
+            </button>
+          </div>
         </div>
       </CardContent>
       <CardFooter className="flex justify-end gap-2">
-        <Button variant="outline" onClick={onSkip}>
+        <Button variant="outline" onClick={onSkip} disabled={verifyOtpMutation.isPending}>
           Skip
         </Button>
-        <Button onClick={handleVerify}>
-          Validate
+        <Button 
+          onClick={handleVerify} 
+          disabled={verifyOtpMutation.isPending || !otp || otp.length < 4}
+        >
+          {verifyOtpMutation.isPending ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Validating...
+            </>
+          ) : (
+            "Validate"
+          )}
         </Button>
       </CardFooter>
     </Card>
