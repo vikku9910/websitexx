@@ -724,80 +724,80 @@ export default function PostAdPage() {
                   type="checkbox" 
                   id="service1" 
                   className="mr-2"
-                  value="24/7 Available"
+                  value="69 Position"
                   {...register("services")}
                 />
-                <label htmlFor="service1">24/7 Available</label>
+                <label htmlFor="service1">69 Position</label>
               </div>
               <div className="flex items-center">
                 <input 
                   type="checkbox" 
                   id="service2" 
                   className="mr-2"
-                  value="Home Service"
+                  value="French Kissing"
                   {...register("services")}
                 />
-                <label htmlFor="service2">Home Service</label>
+                <label htmlFor="service2">French Kissing</label>
               </div>
               <div className="flex items-center">
                 <input 
                   type="checkbox" 
                   id="service3" 
                   className="mr-2"
-                  value="Free Consultation"
+                  value="Kissing"
                   {...register("services")}
                 />
-                <label htmlFor="service3">Free Consultation</label>
+                <label htmlFor="service3">Kissing</label>
               </div>
               <div className="flex items-center">
                 <input 
                   type="checkbox" 
                   id="service4" 
                   className="mr-2"
-                  value="Cash Payment"
+                  value="Cum on Face"
                   {...register("services")}
                 />
-                <label htmlFor="service4">Cash Payment</label>
+                <label htmlFor="service4">Cum on Face</label>
               </div>
               <div className="flex items-center">
                 <input 
                   type="checkbox" 
                   id="service5" 
                   className="mr-2"
-                  value="Online Payment"
+                  value="Handjob"
                   {...register("services")}
                 />
-                <label htmlFor="service5">Online Payment</label>
+                <label htmlFor="service5">Handjob</label>
               </div>
               <div className="flex items-center">
                 <input 
                   type="checkbox" 
                   id="service6" 
                   className="mr-2"
-                  value="Free Delivery"
+                  value="Cum in Mouth"
                   {...register("services")}
                 />
-                <label htmlFor="service6">Free Delivery</label>
+                <label htmlFor="service6">Cum in Mouth</label>
               </div>
               <div className="flex items-center">
                 <input 
                   type="checkbox" 
                   id="service7" 
                   className="mr-2"
-                  value="Warranty Available"
+                  value="Girlfriend Experience"
                   {...register("services")}
                 />
-                <label htmlFor="service7">Warranty Available</label>
+                <label htmlFor="service7">Girlfriend Experience</label>
               </div>
               <div className="flex items-center">
                 <input 
                   type="checkbox" 
                   id="service8" 
                   className="mr-2"
-                  value="Certificate Provided"
+                  value="Sex in Different Positions"
                   {...register("services")}
                 />
-                <label htmlFor="service8">Certificate Provided</label>
+                <label htmlFor="service8">Sex in Different Positions</label>
               </div>
             </div>
           </div>
