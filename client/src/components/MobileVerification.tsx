@@ -130,28 +130,24 @@ export default function MobileVerification({
           </div>
           
           {/* Test OTP only shown in development mode for testing */}
-          {testOtp && process.env.NODE_ENV === "development" && (
+          {process.env.NODE_ENV === "development" && (
             <div className="p-3 bg-amber-50 border border-amber-200 rounded-md text-amber-800">
               <h4 className="font-semibold text-sm">Development Mode</h4>
-              <div className="flex items-center mt-1">
-                <span className="text-sm mr-3">Test OTP:</span>
-                <code className="font-mono bg-white p-1 rounded border border-amber-200 text-amber-900">
-                  {testOtp}
-                </code>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="text-sm">Test OTP:</span>
+                <input
+                  type="text"
+                  className="w-24 font-mono p-1 border border-amber-200 rounded bg-white text-black"
+                  value={testOtp || ""}
+                  onChange={(e) => setTestOtp(e.target.value)}
+                />
                 <button 
-                  className="ml-2 text-xs bg-amber-100 hover:bg-amber-200 p-1 rounded"
-                  onClick={() => setOtp(testOtp)}
-                >
-                  Auto-fill
-                </button>
-                <button 
-                  className="ml-2 text-xs bg-amber-100 hover:bg-amber-200 p-1 rounded"
+                  className="text-xs bg-amber-100 hover:bg-amber-200 p-1 px-2 rounded"
                   onClick={() => {
-                    setOtp(testOtp);
-                    handleVerify();
+                    if (testOtp) setOtp(testOtp);
                   }}
                 >
-                  Auto-fill & Verify
+                  Auto-fill
                 </button>
               </div>
             </div>
