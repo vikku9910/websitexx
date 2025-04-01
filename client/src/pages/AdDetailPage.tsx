@@ -2,11 +2,16 @@ import { useParams, Link } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Ad, AdPromotionPlan } from "@shared/schema";
 import { Loader2, Phone, MapPin, Calendar, MessageCircle, Award, TrendingUp } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { 
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogTrigger
+} from "@/components/ui/alert-dialog";
 import { 
   Card,
   CardContent, 
@@ -34,6 +39,7 @@ export default function AdDetailPage() {
   const [similarAds, setSimilarAds] = useState<Ad[]>([]);
   const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null);
   const [promotionDialogOpen, setPromotionDialogOpen] = useState(false);
+  const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
   
@@ -142,35 +148,106 @@ export default function AdDetailPage() {
           {/* Image Gallery */}
           <div className="w-full md:w-1/2 p-4">
             {/* Main Image */}
-            <div className="mb-4">
+            <div className="mb-4 relative">
               {ad.photoUrls && ad.photoUrls.length > 0 ? (
-                <img 
-                  src={ad.photoUrls[activeImage]} 
-                  alt={ad.title} 
-                  className="w-full h-80 object-cover rounded-md"
-                />
+                <AlertDialog open={!!fullscreenImage} onOpenChange={(open) => !open && setFullscreenImage(null)}>
+                  <AlertDialogTrigger asChild>
+                    <img 
+                      src={ad.photoUrls[activeImage]} 
+                      alt={ad.title} 
+                      className="w-full h-80 object-contain bg-gray-50 rounded-md cursor-pointer"
+                      onClick={() => setFullscreenImage(ad.photoUrls![activeImage])}
+                    />
+                  </AlertDialogTrigger>
+                  <AlertDialogContent className="max-w-screen-lg max-h-[90vh] p-1 bg-black/90 border-none">
+                    <div className="relative w-full h-full">
+                      <img 
+                        src={fullscreenImage || ''} 
+                        alt="Enlarged view" 
+                        className="w-full h-full object-contain"
+                      />
+                      <button 
+                        onClick={() => setFullscreenImage(null)}
+                        className="absolute top-2 right-2 bg-white/20 hover:bg-white/40 p-2 rounded-full text-white"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                      </button>
+                      {ad.photoUrls && ad.photoUrls.length > 1 && (
+                        <>
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const prevIndex = ad.photoUrls!.indexOf(fullscreenImage!) === 0 
+                                ? ad.photoUrls!.length - 1 
+                                : ad.photoUrls!.indexOf(fullscreenImage!) - 1;
+                              setFullscreenImage(ad.photoUrls![prevIndex]);
+                              setActiveImage(prevIndex);
+                            }}
+                            className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 p-3 rounded-full text-white"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6"><path d="m15 18-6-6 6-6"/></svg>
+                          </button>
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const nextIndex = ad.photoUrls!.indexOf(fullscreenImage!) === ad.photoUrls!.length - 1
+                                ? 0
+                                : ad.photoUrls!.indexOf(fullscreenImage!) + 1;
+                              setFullscreenImage(ad.photoUrls![nextIndex]);
+                              setActiveImage(nextIndex);
+                            }}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 p-3 rounded-full text-white"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6"><path d="m9 18 6-6-6-6"/></svg>
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </AlertDialogContent>
+                </AlertDialog>
               ) : (
                 <div className="w-full h-80 bg-gray-200 flex items-center justify-center rounded-md">
                   <span className="text-gray-400">No image</span>
                 </div>
               )}
+              
+              {/* Navigation arrows for images */}
+              {ad.photoUrls && ad.photoUrls.length > 1 && (
+                <>
+                  <button 
+                    onClick={() => setActiveImage(prev => prev === 0 ? ad.photoUrls!.length - 1 : prev - 1)}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><path d="m15 18-6-6 6-6"/></svg>
+                  </button>
+                  <button 
+                    onClick={() => setActiveImage(prev => prev === ad.photoUrls!.length - 1 ? 0 : prev + 1)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><path d="m9 18 6-6-6-6"/></svg>
+                  </button>
+                </>
+              )}
             </div>
             
             {/* Thumbnails */}
             {ad.photoUrls && ad.photoUrls.length > 1 && (
-              <div className="flex flex-wrap gap-2 pb-2">
+              <div className="flex flex-wrap gap-2 pb-2 justify-center">
                 {ad.photoUrls.map((url, index) => (
                   <div 
                     key={index}
-                    className={`w-20 h-20 flex-shrink-0 cursor-pointer border-2 rounded-md ${
-                      index === activeImage ? "border-[#4ebb78]" : "border-transparent"
-                    }`}
-                    onClick={() => setActiveImage(index)}
+                    className={`w-20 h-20 flex-shrink-0 cursor-pointer border-2 ${
+                      index === activeImage ? "border-[#4ebb78] ring-2 ring-[#4ebb78]/20" : "border-gray-200"
+                    } rounded-md transition-all`}
+                    onClick={() => {
+                      setActiveImage(index);
+                      setFullscreenImage(url);
+                    }}
                   >
                     <img 
                       src={url} 
                       alt={`Thumbnail ${index + 1}`} 
-                      className="w-full h-full object-cover rounded-md"
+                      className="w-full h-full object-cover rounded-sm"
                     />
                   </div>
                 ))}
