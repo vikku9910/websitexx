@@ -930,7 +930,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json({ 
           success: true, 
           message: "OTP sent successfully (development mode)", 
-          devInfo: `OTP is: ${otp}` 
+          devInfo: `OTP is: ${otp}`,
+          smsMode: "development"
         });
       }
       
@@ -947,9 +948,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Check if response has the expected structure
       if (typeof data === 'object' && data !== null && 'return' in data && data.return === true) {
+        // Real SMS was sent successfully
         return res.json({ 
           success: true, 
-          message: "OTP sent successfully to your mobile number"
+          message: "OTP sent successfully to your mobile number",
+          smsMode: "production"
         });
       } else {
         console.error("Fast2SMS API error:", data);
@@ -958,7 +961,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json({ 
           success: true, 
           message: "OTP sent successfully (development mode)", 
-          devInfo: `OTP is: ${otp}` 
+          devInfo: `OTP is: ${otp}`,
+          smsMode: "development"
         });
       }
       
@@ -971,7 +975,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json({ 
           success: true, 
           message: "OTP sent successfully (development mode)", 
-          devInfo: `OTP is: ${otp}` 
+          devInfo: `OTP is: ${otp}`,
+          smsMode: "development"
         });
       }
       

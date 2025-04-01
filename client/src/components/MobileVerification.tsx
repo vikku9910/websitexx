@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
+import { Loader2, Smartphone, Info } from "lucide-react";
 
 interface MobileVerificationProps {
   mobileNumber: string;
@@ -20,9 +20,10 @@ export default function MobileVerification({
 }: MobileVerificationProps) {
   const [otp, setOtp] = useState("");
   const [testOtp, setTestOtp] = useState<string | null>(null);
+  const [isDevMode, setIsDevMode] = useState(false);
   const { toast } = useToast();
 
-  // OTP verification using development mode
+  // OTP verification mutation
   const sendOtpMutation = useMutation({
     mutationFn: async (phone: string) => {
       const res = await apiRequest("POST", "/api/send-otp", { mobileNumber: phone });
@@ -30,9 +31,14 @@ export default function MobileVerification({
     },
     onSuccess: (data) => {
       if (data.success) {
-        // Get the OTP from development info
-        if (data.devInfo) {
-          setTestOtp(data.devInfo.replace("OTP is: ", ""));
+        // Check if we're in development mode based on smsMode property
+        if (data.smsMode === "development") {
+          if (data.devInfo) {
+            setTestOtp(data.devInfo.replace("OTP is: ", ""));
+          }
+          setIsDevMode(true);
+        } else {
+          setIsDevMode(false);
         }
         
         toast({
@@ -131,24 +137,38 @@ export default function MobileVerification({
             />
           </div>
           
-          {/* Always show Development Mode OTP panel */}
-          <div className="p-3 bg-amber-50 border border-amber-200 rounded-md">
-            <h4 className="font-semibold">Development Mode</h4>
-            <div className="flex items-center gap-2 mt-2">
-              <span>Test OTP:</span>
-              <div className="bg-white px-3 py-1 border border-amber-200 rounded font-mono">
-                {testOtp || ""}
+          {isDevMode ? (
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-md">
+              <h4 className="font-semibold">Development Mode</h4>
+              <div className="flex items-center gap-2 mt-2">
+                <span>Test OTP:</span>
+                <div className="bg-white px-3 py-1 border border-amber-200 rounded font-mono">
+                  {testOtp || ""}
+                </div>
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  className="ml-2 bg-amber-100 hover:bg-amber-200 border-amber-200 text-amber-800"
+                  onClick={handleAutoFill}
+                >
+                  Auto-fill
+                </Button>
               </div>
-              <Button 
-                variant="outline"
-                size="sm"
-                className="ml-2 bg-amber-100 hover:bg-amber-200 border-amber-200 text-amber-800"
-                onClick={handleAutoFill}
-              >
-                Auto-fill
-              </Button>
             </div>
-          </div>
+          ) : (
+            <div className="p-3 bg-green-50 border border-green-200 rounded-md">
+              <div className="flex items-start gap-2">
+                <Smartphone className="h-5 w-5 text-green-500 mt-0.5" />
+                <div>
+                  <h4 className="font-semibold text-green-800">Real SMS Sent</h4>
+                  <p className="text-sm text-green-700">
+                    A verification code has been sent to your mobile number via SMS.
+                    Please check your messages and enter the 6-digit code above.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
           
           {(sendOtpMutation.isPending || verifyOtpMutation.isPending) && (
             <div className="flex items-center justify-center">
