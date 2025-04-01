@@ -252,14 +252,11 @@ export default function AdDetailPage() {
             <div className="space-y-3">
               <h2 className="text-lg font-medium text-gray-800">Contact Information</h2>
               
-              <div className="flex flex-col items-center w-48">
-                <a 
-                  href={`tel:${ad.contactNumber}`}
-                  className="bg-green-50 px-4 py-2 rounded-md text-center mb-2 w-full block"
-                >
-                  <span className="text-base font-semibold text-gray-800">{ad.contactNumber}</span>
-                </a>
-                
+              <div className="bg-green-50 px-4 py-3 rounded-md text-center mb-4 max-w-xs">
+                <span className="text-base font-semibold text-gray-800">{ad.contactNumber}</span>
+              </div>
+              
+              <div className="flex justify-center mb-4">
                 <a 
                   href={`https://wa.me/${ad.contactNumber}?text=Hi`}
                   target="_blank"
@@ -280,10 +277,10 @@ export default function AdDetailPage() {
                 </a>
               </div>
               
-              <div className="flex justify-between mt-4">
+              <div className="flex justify-between gap-4">
                 <a 
                   href={`tel:${ad.contactNumber}`} 
-                  className="bg-[#4ebb78] text-white px-4 py-2 rounded-md hover:bg-opacity-90 inline-flex items-center"
+                  className="bg-[#4ebb78] text-white px-4 py-2 rounded-md hover:bg-opacity-90 inline-flex items-center justify-center flex-1"
                 >
                   <Phone className="h-4 w-4 mr-2" />
                   Call Now
@@ -293,7 +290,7 @@ export default function AdDetailPage() {
                   href={`https://wa.me/${ad.contactNumber}?text=Hi`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-opacity-90 inline-flex items-center"
+                  className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-opacity-90 inline-flex items-center justify-center flex-1"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
