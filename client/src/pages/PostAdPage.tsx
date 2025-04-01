@@ -7,6 +7,7 @@ import { AlertCircle, Home } from "lucide-react";
 import { Link } from "wouter";
 import { locations } from "@/data/locations";
 import MobileVerification from "@/components/MobileVerification";
+import AdPromotion from "@/components/AdPromotion";
 import { useAuth } from "@/hooks/use-auth";
 
 // Maximum file size: 5MB
@@ -54,6 +55,7 @@ export default function PostAdPage() {
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showMobileVerification, setShowMobileVerification] = useState(false);
+  const [showPromotion, setShowPromotion] = useState(false);
   const [formData, setFormData] = useState<{
     formValues: AdFormValues | null;
     photoUrls: string[] | null;
@@ -61,6 +63,7 @@ export default function PostAdPage() {
     formValues: null,
     photoUrls: null
   });
+  const [createdAdId, setCreatedAdId] = useState<number | null>(null);
   
   const {
     register,
@@ -254,26 +257,16 @@ export default function PostAdPage() {
       }
       
       const newAd = await response.json();
+      setCreatedAdId(newAd.id);
       
       toast({
-        title: "Ad posted successfully",
-        description: "Your ad has been posted successfully and your mobile number is verified.",
+        title: "Ad created successfully",
+        description: "Your ad has been created and your mobile number is verified.",
       });
       
-      // Clean up preview URLs
-      previewUrls.forEach(url => URL.revokeObjectURL(url));
-      setPreviewUrls([]);
-      setSelectedFiles(null);
+      // Hide mobile verification and show promotion options
       setShowMobileVerification(false);
-      
-      // Reset the form after successful submission
-      reset();
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-      
-      // Redirect to the new ad page
-      window.location.href = `/ad/${newAd.id}`;
+      setShowPromotion(true);
     } catch (error) {
       console.error('Error posting ad:', error);
       
@@ -324,10 +317,11 @@ export default function PostAdPage() {
       }
       
       const newAd = await response.json();
+      setCreatedAdId(newAd.id);
       
       toast({
-        title: "Ad posted successfully",
-        description: "Your ad has been posted successfully, but mobile verification was skipped.",
+        title: "Ad created successfully",
+        description: "Your ad has been created, but mobile verification was skipped.",
       });
       
       // Clean up preview URLs
@@ -342,7 +336,7 @@ export default function PostAdPage() {
         fileInputRef.current.value = "";
       }
       
-      // Redirect to the new ad page
+      // No promotion step for unverified ads - go directly to the ad page
       window.location.href = `/ad/${newAd.id}`;
     } catch (error) {
       console.error('Error posting ad:', error);
@@ -357,6 +351,67 @@ export default function PostAdPage() {
         description: errorMessage,
         variant: "destructive"
       });
+    }
+  };
+  
+  // Function to handle promotion completion or skipping
+  const handlePromotionComplete = async (promotionId: number | null) => {
+    try {
+      if (promotionId) {
+        // If a promotion was created, update the ad with the promotion ID
+        const response = await fetch(`/api/ads/${createdAdId}/promote`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ promotionId }),
+          credentials: 'include'
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to link promotion to ad. Please contact support.');
+        }
+        
+        toast({
+          title: "Ad promoted successfully",
+          description: "Your ad has been posted and promoted successfully.",
+        });
+      } else {
+        toast({
+          title: "Ad posted successfully",
+          description: "Your ad has been posted successfully without promotion.",
+        });
+      }
+      
+      // Clean up preview URLs
+      previewUrls.forEach(url => URL.revokeObjectURL(url));
+      setPreviewUrls([]);
+      setSelectedFiles(null);
+      setShowPromotion(false);
+      
+      // Reset the form after successful submission
+      reset();
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+      
+      // Redirect to the new ad page
+      window.location.href = `/ad/${createdAdId}`;
+    } catch (error) {
+      console.error('Error promoting ad:', error);
+      
+      // Set the error message for the UI
+      const errorMessage = error instanceof Error ? error.message : "Failed to promote ad. Please try again.";
+      setSubmitError(errorMessage);
+      
+      toast({
+        title: "Error promoting ad",
+        description: errorMessage,
+        variant: "destructive"
+      });
+      
+      // Still redirect to the ad page even if promotion linking fails
+      window.location.href = `/ad/${createdAdId}`;
     }
   };
 
@@ -380,6 +435,20 @@ export default function PostAdPage() {
                 mobileNumber={formData.formValues?.contactNumber || ""}
                 onVerificationComplete={handleVerificationComplete}
                 onSkip={handleSkipVerification}
+              />
+            </div>
+          </div>
+        )}
+        
+        {/* Promotion Modal */}
+        {showPromotion && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-xl w-full overflow-y-auto max-h-[90vh]">
+              <AdPromotion 
+                adTitle={formData.formValues?.title || ""}
+                adImage={previewUrls.length > 0 ? previewUrls[0] : null}
+                onPromotionComplete={handlePromotionComplete}
+                onCancel={() => handlePromotionComplete(null)}
               />
             </div>
           </div>
@@ -472,7 +541,7 @@ export default function PostAdPage() {
                 <option value="fashion">Fashion</option>
                 <option value="education">Education</option>
                 <option value="pets">Pets</option>
-                <option value="hobbies">Hobbies</option>
+                <option value="others">Others</option>
               </select>
               {errors.category && (
                 <p className="text-red-500 text-xs mt-1">{errors.category.message}</p>
@@ -486,7 +555,7 @@ export default function PostAdPage() {
                 Contact Number*
               </label>
               <input
-                type="text"
+                type="tel"
                 id="contactNumber"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4ebb78]"
                 {...register("contactNumber")}
@@ -572,18 +641,21 @@ export default function PostAdPage() {
                 <li>Do not use offensive language or post prohibited items</li>
                 <li>Upload clear, high-quality photos (JPG, PNG, or WebP format)</li>
                 <li>Maximum file size: 5MB per photo</li>
-                <li>Include {MIN_PHOTOS}-{MAX_PHOTOS} photos of your item/service</li>
+                <li>Include {MIN_PHOTOS}-{MAX_PHOTOS} photos to give a complete view of your item</li>
               </ol>
             </div>
           </div>
           
-          <div className="flex justify-end">
+          <div className="border-t pt-4">
             <button
               type="submit"
-              className="bg-[#4ebb78] text-white px-6 py-2 rounded-md hover:bg-[#3d9c64] transition-colors duration-200"
+              className="w-full bg-[#4ebb78] hover:bg-[#3da967] text-white py-2 px-4 rounded-md transition-colors"
             >
-              Submit Ad
+              Post Ad
             </button>
+            <p className="mt-3 text-gray-500 text-xs text-center">
+              By posting this ad, you agree to our <Link href="/terms" className="text-[#4ebb78] hover:underline">Terms of Service</Link> and <Link href="/privacy" className="text-[#4ebb78] hover:underline">Privacy Policy</Link>
+            </p>
           </div>
         </form>
       </div>

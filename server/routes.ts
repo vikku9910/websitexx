@@ -649,6 +649,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Direct promotion endpoint
+  app.post("/api/ad-promotions", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const { position, durationDays, points } = req.body;
+      
+      if (!position || !durationDays || !points) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+      
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      // Check if user has enough points
+      if ((user.points || 0) < points) {
+        return res.status(400).json({ error: "Insufficient points" });
+      }
+      
+      // Calculate expiration date
+      const now = new Date();
+      const expiresAt = new Date(now);
+      expiresAt.setDate(expiresAt.getDate() + parseInt(durationDays));
+      
+      // Deduct points from user
+      const updatedUser = await storage.updateUserPoints(userId, -points);
+      
+      // Create transaction record
+      const transaction = await storage.createTransaction({
+        userId,
+        amount: -points,
+        points: Number(updatedUser!.points || 0),
+        type: "debit",
+        description: `Ad promotion: ${position} for ${durationDays} days`
+      });
+      
+      // Create promotion record without an ad yet (will be linked later)
+      const promotion = await storage.createAdPromotion({
+        userId,
+        position,
+        expiresAt,
+        pointsSpent: points,
+        transactionId: transaction.id
+      });
+      
+      res.status(201).json(promotion);
+    } catch (error) {
+      console.error("Error creating ad promotion:", error);
+      res.status(500).json({ error: "Failed to create ad promotion" });
+    }
+  });
+  
   // Create promotion for an ad
   app.post("/api/ads/:id/promote", isAuthenticated, async (req, res) => {
     const adId = parseInt(req.params.id);
@@ -669,68 +723,96 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "Unauthorized to promote this ad" });
       }
       
-      const { planId } = req.body;
-      if (!planId) {
-        return res.status(400).json({ error: "Promotion plan is required" });
+      // We have two promotion paths:
+      // 1. Traditional path with planId (existing implementation)
+      // 2. New flow with promotionId (linking a pre-created promotion to an ad)
+      
+      if (req.body.promotionId) {
+        // New flow - link existing promotion to ad
+        const promotionId = req.body.promotionId;
+        
+        // Get the promotion
+        const promotion = await storage.getAdPromotion(promotionId);
+        if (!promotion) {
+          return res.status(404).json({ error: "Promotion not found" });
+        }
+        
+        if (promotion.userId !== userId) {
+          return res.status(403).json({ error: "You don't own this promotion" });
+        }
+        
+        // Update ad with promotion status
+        const updatedAd = await storage.updateAdPromotionStatus(
+          adId,
+          promotionId,
+          promotion.position,
+          promotion.expiresAt
+        );
+        
+        return res.json(updatedAd);
+      } else {
+        // Traditional flow - create promotion from a plan
+        const { planId } = req.body;
+        if (!planId) {
+          return res.status(400).json({ error: "Promotion plan is required" });
+        }
+        
+        // Get the plan
+        const plan = await storage.getPromotionPlan(planId);
+        if (!plan) {
+          return res.status(404).json({ error: "Promotion plan not found" });
+        }
+        
+        // Check if user has enough points
+        const user = await storage.getUser(userId);
+        if (!user) {
+          return res.status(404).json({ error: "User not found" });
+        }
+        
+        if ((user.points || 0) < plan.pointsCost) {
+          return res.status(400).json({ error: "Not enough points" });
+        }
+        
+        // Calculate expiration date
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + plan.durationDays);
+        
+        // Deduct points from user
+        const updatedUser = await storage.updateUserPoints(userId, -plan.pointsCost);
+        
+        // Create transaction record
+        const transaction = await storage.createTransaction({
+          userId,
+          amount: -plan.pointsCost,
+          points: Number(updatedUser!.points || 0),
+          type: "debit",
+          description: `Ad promotion: ${plan.name} for ${plan.durationDays} days`
+        });
+        
+        // Create promotion record
+        const promotion = await storage.createAdPromotion({
+          adId,
+          userId,
+          planId,
+          expiresAt,
+          pointsSpent: plan.pointsCost,
+          transactionId: transaction.id
+        });
+        
+        // Update ad with promotion status
+        const updatedAd = await storage.updateAdPromotionStatus(
+          adId, 
+          promotion.id, 
+          plan.position, 
+          expiresAt
+        );
+        
+        res.status(201).json({
+          promotion,
+          transaction,
+          ad: updatedAd
+        });
       }
-      
-      // Get the plan
-      const plan = await storage.getPromotionPlan(planId);
-      if (!plan) {
-        return res.status(404).json({ error: "Promotion plan not found" });
-      }
-      
-      // Check if user has enough points
-      const user = await storage.getUser(userId);
-      if (!user) {
-        return res.status(404).json({ error: "User not found" });
-      }
-      
-      if ((user.points || 0) < plan.pointsCost) {
-        return res.status(400).json({ error: "Not enough points" });
-      }
-      
-      // Calculate expiration date
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + plan.durationDays);
-      
-      // Start transaction
-      
-      // Deduct points from user
-      const updatedUser = await storage.updateUserPoints(userId, -plan.pointsCost);
-      
-      // Create transaction record
-      const transaction = await storage.createTransaction({
-        userId,
-        amount: -plan.pointsCost,
-        points: Number(updatedUser!.points || 0),
-        type: "debit",
-        description: `Ad promotion: ${plan.name} for ${plan.durationDays} days`
-      });
-      
-      // Create promotion record
-      const promotion = await storage.createAdPromotion({
-        adId,
-        userId,
-        planId,
-        expiresAt,
-        pointsSpent: plan.pointsCost,
-        transactionId: transaction.id
-      });
-      
-      // Update ad with promotion status
-      const updatedAd = await storage.updateAdPromotionStatus(
-        adId, 
-        promotion.id, 
-        plan.position, 
-        expiresAt
-      );
-      
-      res.status(201).json({
-        promotion,
-        transaction,
-        ad: updatedAd
-      });
       
     } catch (error) {
       console.error("Error promoting ad:", error);
