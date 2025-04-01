@@ -86,19 +86,19 @@ export default function PostAdPage() {
   // Watch the state field to update cities
   const selectedState = watch("state");
   
-  // Define cities for each state
+  // Define areas/localities for each city
   const stateCities: Record<string, string[]> = {
-    "Maharashtra": ["Mumbai", "Pune", "Nagpur", "Thane", "Aurangabad", "Nashik", "Borivali", "Andheri", "Bandra", "Juhu", "Dadar"],
-    "Delhi": ["New Delhi", "North Delhi", "South Delhi", "East Delhi", "West Delhi"],
-    "Karnataka": ["Bangalore", "Mysore", "Hubli", "Mangalore", "Belgaum"],
-    "Tamil Nadu": ["Chennai", "Coimbatore", "Madurai", "Salem", "Trichy"],
-    "Telangana": ["Hyderabad", "Warangal", "Nizamabad", "Karimnagar", "Khammam"],
-    "West Bengal": ["Kolkata", "Siliguri", "Asansol", "Durgapur", "Howrah"],
-    "Gujarat": ["Ahmedabad", "Surat", "Vadodara", "Rajkot", "Gandhinagar"],
-    "Uttar Pradesh": ["Lucknow", "Kanpur", "Agra", "Varanasi", "Meerut", "Noida"],
-    "Rajasthan": ["Jaipur", "Jodhpur", "Udaipur", "Kota", "Ajmer"],
-    "Punjab": ["Chandigarh", "Ludhiana", "Amritsar", "Jalandhar", "Patiala"],
-    // Add more states and cities as needed
+    "Mumbai": ["Andheri", "Borivali", "Dadar", "Juhu", "Bandra", "Colaba", "Powai", "Malad", "Goregaon", "Kandivali"],
+    "Delhi": ["Connaught Place", "Karol Bagh", "Lajpat Nagar", "Hauz Khas", "Dwarka", "Rohini", "Mayur Vihar", "Saket", "Paharganj"],
+    "Pune": ["Koregaon Park", "Viman Nagar", "Baner", "Kothrud", "Hinjewadi", "Shivaji Nagar", "Hadapsar", "Aundh", "Magarpatta"],
+    "Bengaluru": ["Indiranagar", "Koramangala", "MG Road", "Whitefield", "JP Nagar", "HSR Layout", "Marathahalli", "Jayanagar", "BTM Layout"],
+    "Hyderabad": ["Banjara Hills", "Jubilee Hills", "HITEC City", "Gachibowli", "Ameerpet", "Secunderabad", "Madhapur", "Kukatpally"],
+    "Chennai": ["T Nagar", "Adyar", "Anna Nagar", "Nungambakkam", "Mylapore", "Porur", "Velachery", "Besant Nagar", "Tambaram"],
+    "Kolkata": ["Park Street", "Salt Lake", "New Town", "Ballygunge", "Howrah", "Alipore", "Behala", "Dum Dum", "Garia"],
+    "Ahmedabad": ["Navrangpura", "Satellite", "Bodakdev", "SG Highway", "CG Road", "Prahlad Nagar", "Vastrapur", "Maninagar"],
+    "Jaipur": ["C-Scheme", "Malviya Nagar", "Vaishali Nagar", "Raja Park", "Mansarovar", "Jagatpura", "Tonk Road", "Adarsh Nagar"],
+    // Default areas for other cities
+    "default": ["Central", "North", "South", "East", "West", "Downtown", "Uptown", "Midtown", "Suburb"]
   };
   
   // When state changes, reset city
@@ -514,43 +514,54 @@ export default function PostAdPage() {
         >
           <div className="mb-4">
             <label htmlFor="state" className="block text-gray-700 text-sm mb-2">
-              State*
+              City*
             </label>
             <select
               id="state"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4ebb78]"
               {...register("state")}
             >
-              <option value="">Select State</option>
-              <option value="Andhra Pradesh">Andhra Pradesh</option>
-              <option value="Arunachal Pradesh">Arunachal Pradesh</option>
-              <option value="Assam">Assam</option>
-              <option value="Bihar">Bihar</option>
-              <option value="Chhattisgarh">Chhattisgarh</option>
+              <option value="">Select City</option>
+              <option value="Agra">Agra</option>
+              <option value="Ghaziabad">Ghaziabad</option>
+              <option value="Kanpur">Kanpur</option>
+              <option value="Varanasi">Varanasi</option>
+              <option value="Vadodara">Vadodara</option>
+              <option value="Ranchi">Ranchi</option>
+              <option value="Gwalior">Gwalior</option>
+              <option value="Surat">Surat</option>
+              <option value="Noida">Noida</option>
+              <option value="Ludhiana">Ludhiana</option>
+              <option value="Jaipur">Jaipur</option>
+              <option value="Mumbai">Mumbai</option>
+              <option value="Kolkata">Kolkata</option>
               <option value="Delhi">Delhi</option>
+              <option value="Chennai">Chennai</option>
+              <option value="Nashik">Nashik</option>
+              <option value="Meerut">Meerut</option>
+              <option value="Visakhapatnam">Visakhapatnam</option>
+              <option value="Jalandhar">Jalandhar</option>
+              <option value="Dehradun">Dehradun</option>
+              <option value="Lucknow">Lucknow</option>
+              <option value="Ahmedabad">Ahmedabad</option>
               <option value="Goa">Goa</option>
-              <option value="Gujarat">Gujarat</option>
-              <option value="Haryana">Haryana</option>
-              <option value="Himachal Pradesh">Himachal Pradesh</option>
-              <option value="Jharkhand">Jharkhand</option>
-              <option value="Karnataka">Karnataka</option>
-              <option value="Kerala">Kerala</option>
-              <option value="Madhya Pradesh">Madhya Pradesh</option>
-              <option value="Maharashtra">Maharashtra</option>
-              <option value="Manipur">Manipur</option>
-              <option value="Meghalaya">Meghalaya</option>
-              <option value="Mizoram">Mizoram</option>
-              <option value="Nagaland">Nagaland</option>
-              <option value="Odisha">Odisha</option>
-              <option value="Punjab">Punjab</option>
-              <option value="Rajasthan">Rajasthan</option>
-              <option value="Sikkim">Sikkim</option>
-              <option value="Tamil Nadu">Tamil Nadu</option>
-              <option value="Telangana">Telangana</option>
-              <option value="Tripura">Tripura</option>
-              <option value="Uttar Pradesh">Uttar Pradesh</option>
-              <option value="Uttarakhand">Uttarakhand</option>
-              <option value="West Bengal">West Bengal</option>
+              <option value="Pune">Pune</option>
+              <option value="Nagpur">Nagpur</option>
+              <option value="Rajkot">Rajkot</option>
+              <option value="Jodhpur">Jodhpur</option>
+              <option value="Udaipur">Udaipur</option>
+              <option value="Gurugram">Gurugram</option>
+              <option value="Andheri">Andheri</option>
+              <option value="Bhopal">Bhopal</option>
+              <option value="Indore">Indore</option>
+              <option value="Chandigarh">Chandigarh</option>
+              <option value="Hyderabad">Hyderabad</option>
+              <option value="Patna">Patna</option>
+              <option value="Raipur">Raipur</option>
+              <option value="Bhubaneswar">Bhubaneswar</option>
+              <option value="Vijayawada">Vijayawada</option>
+              <option value="Coimbatore">Coimbatore</option>
+              <option value="Bengaluru">Bengaluru</option>
             </select>
             {errors.state && (
               <p className="text-red-500 text-xs mt-1">{errors.state.message}</p>
@@ -559,7 +570,7 @@ export default function PostAdPage() {
           
           <div className="mb-4">
             <label htmlFor="city" className="block text-gray-700 text-sm mb-2">
-              City*
+              Area/Locality*
             </label>
             <select
               id="city"
@@ -567,8 +578,8 @@ export default function PostAdPage() {
               {...register("city")}
               disabled={!selectedState}
             >
-              <option value="">Select City</option>
-              {selectedState && stateCities[selectedState]?.map((city, index) => (
+              <option value="">Select Area</option>
+              {selectedState && (stateCities[selectedState] || stateCities["default"])?.map((city, index) => (
                 <option key={index} value={city}>
                   {city}
                 </option>
@@ -578,7 +589,7 @@ export default function PostAdPage() {
               <p className="text-red-500 text-xs mt-1">{errors.city.message}</p>
             )}
             {!selectedState && (
-              <p className="text-gray-500 text-xs mt-1">Please select a state first</p>
+              <p className="text-gray-500 text-xs mt-1">Please select a city first</p>
             )}
           </div>
           
