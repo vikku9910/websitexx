@@ -139,8 +139,6 @@ export default function AdDetailPage() {
         <Link href={`/location/${encodeURIComponent(ad.location)}`} className="hover:text-[#4ebb78]">
           {ad.location}
         </Link>
-        <span>{">"}</span>
-        <span className="text-gray-800">{ad.title}</span>
       </div>
       
       <div className="flex flex-col lg:flex-row gap-6 bg-white">
