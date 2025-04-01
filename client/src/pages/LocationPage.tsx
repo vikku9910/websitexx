@@ -126,41 +126,61 @@ export default function LocationPage() {
                       isTop10 ? 'border-blue-200 bg-blue-50' : 'border-gray-200 bg-white'}`
                   }
                 >
-                  <div className="flex p-2">
-                    {/* Promotion badge - if applicable */}
-                    {ad.promotionId && (
-                      <div className="absolute mt-4 ml-4 z-10">
-                        {isRank1 ? (
-                          <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-200 flex items-center gap-1 px-3 py-1">
-                            <Award className="h-4 w-4" /> Premium
-                          </Badge>
-                        ) : isTop10 ? (
-                          <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-200 flex items-center gap-1 px-3 py-1">
-                            <TrendingUp className="h-4 w-4" /> Featured
-                          </Badge>
-                        ) : null}
+                  {/* Promotion badge - if applicable */}
+                  {ad.promotionId && (
+                    <div className="absolute mt-4 ml-4 z-10">
+                      {isRank1 ? (
+                        <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-200 flex items-center gap-1 px-3 py-1">
+                          <Award className="h-4 w-4" /> Premium
+                        </Badge>
+                      ) : isTop10 ? (
+                        <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-200 flex items-center gap-1 px-3 py-1">
+                          <TrendingUp className="h-4 w-4" /> Featured
+                        </Badge>
+                      ) : null}
+                    </div>
+                  )}
+                  
+                  {/* Mobile-friendly layout */}
+                  <div className="flex flex-col sm:flex-row p-3">
+                    {/* Top row for mobile: Image and Title */}
+                    <div className="flex mb-3 sm:mb-0">
+                      {/* Image Thumbnail */}
+                      <div className="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 flex-shrink-0">
+                        {ad.photoUrls && ad.photoUrls.length > 0 ? (
+                          <Link href={`/ad/${ad.id}`}>
+                            <img 
+                              src={ad.photoUrls[0]} 
+                              alt={ad.title} 
+                              className="w-full h-full object-cover rounded-lg"
+                            />
+                          </Link>
+                        ) : (
+                          <div className="w-full h-full bg-gray-200 flex items-center justify-center rounded-lg">
+                            <span className="text-gray-400">No image</span>
+                          </div>
+                        )}
                       </div>
-                    )}
-                    
-                    {/* Image Thumbnail - Left Side */}
-                    <div className="w-40 h-40 flex-shrink-0">
-                      {ad.photoUrls && ad.photoUrls.length > 0 ? (
+                      
+                      {/* Title and location for mobile */}
+                      <div className="flex-1 px-3 sm:hidden">
                         <Link href={`/ad/${ad.id}`}>
-                          <img 
-                            src={ad.photoUrls[0]} 
-                            alt={ad.title} 
-                            className="w-full h-full object-cover"
-                          />
+                          <h2 className={`text-md font-bold hover:underline cursor-pointer 
+                            ${isRank1 ? 'text-amber-900' : isTop10 ? 'text-blue-900' : 'text-gray-900'}`}>
+                            {ad.title}
+                          </h2>
                         </Link>
-                      ) : (
-                        <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                          <span className="text-gray-400">No image</span>
+                        
+                        <div className="flex items-center mt-1 text-xs text-gray-700">
+                          <MapPin className="h-3 w-3 mr-1" />
+                          <span>{ad.location}</span>
+                          {ad.age && <span className="ml-2">| Age {ad.age}</span>}
                         </div>
-                      )}
+                      </div>
                     </div>
                     
-                    {/* Ad Info - Middle */}
-                    <div className="flex-1 p-3">
+                    {/* Middle section - Desktop Title and Description */}
+                    <div className="flex-1 hidden sm:block px-3">
                       {/* Title - Clickable to open full profile */}
                       <Link href={`/ad/${ad.id}`}>
                         <h2 className={`text-md md:text-lg font-bold hover:underline cursor-pointer 
@@ -182,31 +202,38 @@ export default function LocationPage() {
                       </div>
                     </div>
                     
-                    {/* Phone & WhatsApp - Right Side */}
-                    <div className="flex flex-col items-center justify-center p-3 w-40">
+                    {/* Contact buttons for mobile view */}
+                    <div className="flex flex-row sm:flex-col sm:items-center sm:justify-center gap-2 sm:w-40">
                       <a 
                         href={`tel:${ad.contactNumber}`}
-                        className="flex items-center justify-center bg-green-50 px-4 py-2 rounded-xl text-center mb-3 w-full"
+                        className="flex-1 flex items-center justify-center bg-green-50 px-2 py-2 sm:px-4 rounded-xl text-center w-full"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <Phone className="h-4 w-4 mr-2" />
-                        <span className="text-base font-semibold text-gray-800">{ad.contactNumber}</span>
+                        <Phone className="h-4 w-4 mr-1 sm:mr-2" />
+                        <span className="text-sm sm:text-base font-semibold text-gray-800">{ad.contactNumber}</span>
                       </a>
                       
                       <a 
                         href={`https://wa.me/${ad.contactNumber}?text=Hi`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center justify-center bg-green-100 px-4 py-2 rounded-xl w-full"
+                        className="flex-1 flex items-center justify-center bg-green-100 px-2 py-2 sm:px-4 rounded-xl w-full"
                         onClick={(e) => e.stopPropagation()}
                       >
                         <img 
                           src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/1200px-WhatsApp.svg.png" 
                           alt="WhatsApp" 
-                          className="w-5 h-5 mr-2"
+                          className="w-5 h-5 mr-1 sm:mr-2"
                         />
                         <span className="text-sm font-medium text-green-800">WhatsApp</span>
                       </a>
+                    </div>
+                    
+                    {/* Mobile-only description */}
+                    <div className="sm:hidden mt-2">
+                      <p className="text-xs text-gray-700 line-clamp-2">
+                        {ad.description}
+                      </p>
                     </div>
                   </div>
                 </div>
