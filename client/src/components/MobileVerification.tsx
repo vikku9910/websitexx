@@ -22,7 +22,7 @@ export default function MobileVerification({
   const [testOtp, setTestOtp] = useState<string | null>(null);
   const { toast } = useToast();
 
-  // Real OTP verification using Fast2SMS API
+  // OTP verification using Fast2SMS API
   const sendOtpMutation = useMutation({
     mutationFn: async (phone: string) => {
       const res = await apiRequest("POST", "/api/send-otp", { mobileNumber: phone });
@@ -30,20 +30,17 @@ export default function MobileVerification({
     },
     onSuccess: (data) => {
       if (data.success) {
-        // Check if we're in development mode and have the OTP code
-        if (data.devInfo) {
+        // In case we get development info, store it but don't expose in production
+        if (data.devInfo && process.env.NODE_ENV !== "production") {
           setTestOtp(data.devInfo.replace("OTP is: ", ""));
-          toast({
-            title: "OTP Generated",
-            description: `Development mode: ${data.devInfo}`,
-          });
         } else {
           setTestOtp(null);
-          toast({
-            title: "OTP Sent",
-            description: `A verification code has been sent to ${mobileNumber}`,
-          });
         }
+        
+        toast({
+          title: "OTP Sent",
+          description: `A verification code has been sent to ${mobileNumber}`,
+        });
       } else {
         throw new Error(data.error || "Failed to send OTP");
       }
@@ -132,8 +129,8 @@ export default function MobileVerification({
             />
           </div>
           
-          {/* Test OTP in development mode */}
-          {testOtp && (
+          {/* Test OTP only shown in development mode for testing */}
+          {testOtp && process.env.NODE_ENV === "development" && (
             <div className="p-3 bg-amber-50 border border-amber-200 rounded-md text-amber-800">
               <h4 className="font-semibold text-sm">Development Mode</h4>
               <div className="flex items-center mt-1">

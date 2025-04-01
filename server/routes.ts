@@ -898,16 +898,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       otpStore.set(mobileNumber, { otp, expiresAt });
       
       // In development mode or if site verification is not complete, we can use a fallback
-      const isDevelopment = process.env.NODE_ENV !== "production";
-      
-      if (isDevelopment) {
-        console.log(`[DEV MODE] OTP for ${mobileNumber}: ${otp}`);
-        return res.json({ 
-          success: true, 
-          message: "OTP sent successfully (development mode)", 
-          devInfo: `OTP is: ${otp}` 
-        });
-      }
+      // We'll still log the OTP for debugging but proceed to real SMS
+      console.log(`Generated OTP for ${mobileNumber}: ${otp}`);
       
       // Prepare Fast2SMS API request using the exact format provided
       const apiKey = process.env.FAST2SMS_API_KEY || "3n5VZ4n9PPo7WKiVBm4ev9TRwRKdZBZQZrBbndP8v7PVuyyx4rEefo6XTjHV";
@@ -976,28 +968,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (apiError) {
         console.error("Error processing Fast2SMS API response:", apiError);
         
-        // Development mode fallback on API errors
-        if (process.env.NODE_ENV !== "production") {
-          return res.json({ 
-            success: true, 
-            message: "OTP sent successfully (development mode fallback after API error)", 
-            devInfo: `OTP is: ${otp}` 
-          });
-        }
-        
-        res.status(500).json({ error: "Failed to send OTP due to API processing error" });
+        // Return detailed error for debugging
+        res.status(500).json({ 
+          error: "Failed to send OTP", 
+          details: `API processing error: ${apiError instanceof Error ? apiError.message : 'Unknown error'}`
+        });
       }
     } catch (error) {
       console.error("Error sending OTP:", error);
-      // Still store OTP in development mode even if API fails
-      if (process.env.NODE_ENV !== "production") {
-        return res.json({ 
-          success: true, 
-          message: "OTP sent successfully (development mode fallback)", 
-          devInfo: `OTP is: ${otpStore.get(req.body.mobileNumber)?.otp}` 
-        });
-      }
-      res.status(500).json({ error: "Failed to send OTP" });
+      // Return error with details
+      res.status(500).json({ 
+        error: "Failed to send OTP", 
+        details: error instanceof Error ? error.message : "Unknown error occurred"
+      });
     }
   });
   
