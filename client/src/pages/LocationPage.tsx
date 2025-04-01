@@ -72,22 +72,25 @@ export default function LocationPage() {
         </div>
       </div>
       
-      {/* Location Content Block */}
-      <LocationContent 
-        locationName={decodedLocation} 
-        className="mb-6"
-      />
-
+      {/* Ads Section - Shown First */}
       {(!ads || ads.length === 0) ? (
-        <div className="bg-gray-50 border border-gray-200 text-gray-700 px-4 py-10 rounded text-center">
-          <p className="text-lg">No ads found in {decodedLocation}</p>
-          <p className="mt-2 text-sm text-gray-500">Be the first to post an ad in this location</p>
-          <Link href="/post-ad">
-            <button className="mt-4 bg-[#4ebb78] text-white px-4 py-2 rounded-md hover:bg-opacity-90">
-              Post An Ad
-            </button>
-          </Link>
-        </div>
+        <>
+          <div className="bg-gray-50 border border-gray-200 text-gray-700 px-4 py-10 rounded text-center mb-8">
+            <p className="text-lg">No ads found in {decodedLocation}</p>
+            <p className="mt-2 text-sm text-gray-500">Be the first to post an ad in this location</p>
+            <Link href="/post-ad">
+              <button className="mt-4 bg-[#4ebb78] text-white px-4 py-2 rounded-md hover:bg-opacity-90">
+                Post An Ad
+              </button>
+            </Link>
+          </div>
+          
+          {/* Location Content Block - Shown After Empty Ads Message */}
+          <LocationContent 
+            locationName={decodedLocation} 
+            className=""
+          />
+        </>
       ) : (
         <>
           {/* Ads Legend */}
@@ -245,6 +248,14 @@ export default function LocationPage() {
                 </div>
               );
             })}
+          </div>
+          
+          {/* Location Content Block - Shown After Ads */}
+          <div className="mt-8">
+            <LocationContent 
+              locationName={decodedLocation} 
+              className=""
+            />
           </div>
         </>
       )}
