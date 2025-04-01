@@ -880,7 +880,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return Math.floor(100000 + Math.random() * 900000).toString();
   }
 
-  // Send OTP via Fast2SMS
+  // Send OTP (development mode only)
   app.post("/api/send-otp", async (req, res) => {
     try {
       const { mobileNumber } = req.body;
@@ -891,26 +891,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Generate a new OTP
       const otp = generateOTP();
-      console.log(`Generated OTP for ${mobileNumber}: ${otp}`); // Log the OTP for testing
+      console.log(`Generated OTP for ${mobileNumber}: ${otp}`);
       
       // Store the OTP (expires in 10 minutes)
       const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
       otpStore.set(mobileNumber, { otp, expiresAt });
       
-      // In development mode or if site verification is not complete, we can use a fallback
-      // We'll still log the OTP for debugging but proceed to real SMS
-      console.log(`Generated OTP for ${mobileNumber}: ${otp}`);
+      // Always use development mode without making the actual API call
+      return res.json({ 
+        success: true, 
+        message: "OTP sent successfully (development mode)", 
+        devInfo: `OTP is: ${otp}` 
+      });
       
-      // Prepare Fast2SMS API request using the exact format provided
-      const apiKey = process.env.FAST2SMS_API_KEY || "3n5VZ4n9PPo7WKiVBm4ev9TRwRKdZBZQZrBbndP8v7PVuyyx4rEefo6XTjHV";
+      /* The real API call is commented out for now as requested
+      // For reference, the actual API call would be:
+      const apiKey = process.env.FAST2SMS_API_KEY;
       
       if (!apiKey) {
         return res.status(500).json({ error: "API key not configured" });
       }
       
       const url = "https://www.fast2sms.com/dev/bulkV2";
-      
-      // Using the exact format provided in the example
       const otpParams = new URLSearchParams({
         authorization: apiKey,
         route: "q",
@@ -921,82 +923,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       const otpApiUrl = `${url}?${otpParams.toString()}`;
+      const response = await fetch(otpApiUrl);
+      */
       
-      try {
-        // Call Fast2SMS API
-        console.log("Calling Fast2SMS API with URL:", otpApiUrl);
-        const response = await fetch(otpApiUrl);
-        
-        // Log complete response for debugging
-        const responseText = await response.text();
-        console.log("Fast2SMS API raw response:", responseText);
-        
-        // Parse the response text to JSON
-        const responseData = responseText ? JSON.parse(responseText) : {};
-        console.log("Fast2SMS API parsed response:", responseData);
-        
-        // Check response for the 'q' route format
-        if (responseData && responseData.return === true) {
-          // Fast2SMS API worked
-          res.json({ success: true, message: "OTP sent successfully" });
-        } else if (responseData && responseData.status_code === 996) {
-          // API needs website verification
-          console.log("Website verification required. Falling back to development mode.");
-          
-          // Return success with dev info
-          res.json({ 
-            success: true, 
-            message: "OTP sent successfully (development mode)", 
-            devInfo: `OTP is: ${otp}` 
-          });
-        } else {
-          // Log detailed error information
-          console.error("Fast2SMS API error:", {
-            status: response.status,
-            statusText: response.statusText,
-            responseData
-          });
-          
-          // Return a more detailed error message
-          res.status(500).json({ 
-            error: "Failed to send OTP", 
-            details: responseData && responseData.message ? responseData.message : "Unknown error",
-            status_code: responseData.status_code,
-            request_id: responseData.request_id
-          });
-        }
-      } catch (apiError) {
-        console.error("Error processing Fast2SMS API response:", apiError);
-        
-        // Development mode fallback on API errors
-        if (process.env.NODE_ENV !== "production") {
-          return res.json({ 
-            success: true, 
-            message: "OTP sent successfully (development mode fallback after API error)", 
-            devInfo: `OTP is: ${otp}` 
-          });
-        }
-        
-        // Return detailed error for debugging
-        res.status(500).json({ 
-          error: "Failed to send OTP", 
-          details: `API processing error: ${apiError instanceof Error ? apiError.message : 'Unknown error'}`
-        });
-      }
     } catch (error) {
       console.error("Error sending OTP:", error);
-      // Development mode fallback
-      if (process.env.NODE_ENV !== "production") {
+      
+      // Even on error, just show the test OTP
+      const otp = otpStore.get(req.body.mobileNumber)?.otp;
+      if (otp) {
         return res.json({ 
           success: true, 
-          message: "OTP sent successfully (development mode fallback)", 
-          devInfo: `OTP is: ${otpStore.get(req.body.mobileNumber)?.otp}` 
+          message: "OTP sent successfully (development mode)", 
+          devInfo: `OTP is: ${otp}` 
         });
       }
       
-      // Production error
       res.status(500).json({ 
-        error: "Failed to send OTP", 
+        error: "Failed to generate OTP", 
         details: error instanceof Error ? error.message : "Unknown error occurred"
       });
     }

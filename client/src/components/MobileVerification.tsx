@@ -22,7 +22,7 @@ export default function MobileVerification({
   const [testOtp, setTestOtp] = useState<string | null>(null);
   const { toast } = useToast();
 
-  // OTP verification using Fast2SMS API
+  // OTP verification using development mode
   const sendOtpMutation = useMutation({
     mutationFn: async (phone: string) => {
       const res = await apiRequest("POST", "/api/send-otp", { mobileNumber: phone });
@@ -30,11 +30,9 @@ export default function MobileVerification({
     },
     onSuccess: (data) => {
       if (data.success) {
-        // In case we get development info, store it but don't expose in production
-        if (data.devInfo && process.env.NODE_ENV !== "production") {
+        // Get the OTP from development info
+        if (data.devInfo) {
           setTestOtp(data.devInfo.replace("OTP is: ", ""));
-        } else {
-          setTestOtp(null);
         }
         
         toast({
@@ -107,6 +105,10 @@ export default function MobileVerification({
     sendOtpMutation.mutate(mobileNumber);
   };
 
+  const handleAutoFill = () => {
+    if (testOtp) setOtp(testOtp);
+  };
+
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
@@ -129,29 +131,24 @@ export default function MobileVerification({
             />
           </div>
           
-          {/* Test OTP only shown in development mode for testing */}
-          {process.env.NODE_ENV === "development" && (
-            <div className="p-3 bg-amber-50 border border-amber-200 rounded-md text-amber-800">
-              <h4 className="font-semibold text-sm">Development Mode</h4>
-              <div className="flex items-center gap-2 mt-1">
-                <span className="text-sm">Test OTP:</span>
-                <input
-                  type="text"
-                  className="w-24 font-mono p-1 border border-amber-200 rounded bg-white text-black"
-                  value={testOtp || ""}
-                  onChange={(e) => setTestOtp(e.target.value)}
-                />
-                <button 
-                  className="text-xs bg-amber-100 hover:bg-amber-200 p-1 px-2 rounded"
-                  onClick={() => {
-                    if (testOtp) setOtp(testOtp);
-                  }}
-                >
-                  Auto-fill
-                </button>
+          {/* Always show Development Mode OTP panel */}
+          <div className="p-3 bg-amber-50 border border-amber-200 rounded-md">
+            <h4 className="font-semibold">Development Mode</h4>
+            <div className="flex items-center gap-2 mt-2">
+              <span>Test OTP:</span>
+              <div className="bg-white px-3 py-1 border border-amber-200 rounded font-mono">
+                {testOtp || ""}
               </div>
+              <Button 
+                variant="outline"
+                size="sm"
+                className="ml-2 bg-amber-100 hover:bg-amber-200 border-amber-200 text-amber-800"
+                onClick={handleAutoFill}
+              >
+                Auto-fill
+              </Button>
             </div>
-          )}
+          </div>
           
           {(sendOtpMutation.isPending || verifyOtpMutation.isPending) && (
             <div className="flex items-center justify-center">
@@ -161,10 +158,10 @@ export default function MobileVerification({
               </span>
             </div>
           )}
-          <div className="text-sm">
+          <div className="text-sm text-center">
             <button 
               onClick={handleResendOTP} 
-              className="text-primary hover:underline"
+              className="text-green-500 hover:underline"
               disabled={sendOtpMutation.isPending}
             >
               Resend OTP
@@ -177,6 +174,7 @@ export default function MobileVerification({
           Skip
         </Button>
         <Button 
+          className="bg-green-500 hover:bg-green-600"
           onClick={handleVerify} 
           disabled={verifyOtpMutation.isPending || !otp || otp.length < 4}
         >
