@@ -604,8 +604,6 @@ export default function PostAdPage() {
             >
               <option value="">Select Category</option>
               <option value="Call Girl">Call Girl</option>
-              <option value="Escort">Escort</option>
-              <option value="Massage">Massage</option>
             </select>
             {errors.category && (
               <p className="text-red-500 text-xs mt-1">{errors.category.message}</p>
@@ -759,7 +757,7 @@ export default function PostAdPage() {
           
           <div className="mb-4">
             <label className="block text-gray-700 text-sm mb-2">
-              Services
+              Services Offered
             </label>
             <div className="grid grid-cols-2 gap-2">
               <div className="flex items-center">
@@ -767,80 +765,80 @@ export default function PostAdPage() {
                   type="checkbox" 
                   id="service1" 
                   className="mr-2"
-                  value="69 Position"
+                  value="24/7 Available"
                   {...register("services")}
                 />
-                <label htmlFor="service1">69 Position</label>
+                <label htmlFor="service1">24/7 Available</label>
               </div>
               <div className="flex items-center">
                 <input 
                   type="checkbox" 
                   id="service2" 
                   className="mr-2"
-                  value="French Kissing"
+                  value="Home Service"
                   {...register("services")}
                 />
-                <label htmlFor="service2">French Kissing</label>
+                <label htmlFor="service2">Home Service</label>
               </div>
               <div className="flex items-center">
                 <input 
                   type="checkbox" 
                   id="service3" 
                   className="mr-2"
-                  value="Kissing"
+                  value="Free Consultation"
                   {...register("services")}
                 />
-                <label htmlFor="service3">Kissing</label>
+                <label htmlFor="service3">Free Consultation</label>
               </div>
               <div className="flex items-center">
                 <input 
                   type="checkbox" 
                   id="service4" 
                   className="mr-2"
-                  value="Cum on Face"
+                  value="Cash Payment"
                   {...register("services")}
                 />
-                <label htmlFor="service4">Cum on Face</label>
+                <label htmlFor="service4">Cash Payment</label>
               </div>
               <div className="flex items-center">
                 <input 
                   type="checkbox" 
                   id="service5" 
                   className="mr-2"
-                  value="Handjob"
+                  value="Online Payment"
                   {...register("services")}
                 />
-                <label htmlFor="service5">Handjob</label>
+                <label htmlFor="service5">Online Payment</label>
               </div>
               <div className="flex items-center">
                 <input 
                   type="checkbox" 
                   id="service6" 
                   className="mr-2"
-                  value="Cum in Mouth"
+                  value="Free Delivery"
                   {...register("services")}
                 />
-                <label htmlFor="service6">Cum in Mouth</label>
+                <label htmlFor="service6">Free Delivery</label>
               </div>
               <div className="flex items-center">
                 <input 
                   type="checkbox" 
                   id="service7" 
                   className="mr-2"
-                  value="Girlfriend Experience"
+                  value="Warranty Available"
                   {...register("services")}
                 />
-                <label htmlFor="service7">Girlfriend Experience</label>
+                <label htmlFor="service7">Warranty Available</label>
               </div>
               <div className="flex items-center">
                 <input 
                   type="checkbox" 
                   id="service8" 
                   className="mr-2"
-                  value="Sex in Different Positions"
+                  value="Certificate Provided"
                   {...register("services")}
                 />
-                <label htmlFor="service8">Sex in Different Positions</label>
+                <label htmlFor="service8">Certificate Provided</label>
               </div>
             </div>
           </div>
@@ -893,7 +891,7 @@ export default function PostAdPage() {
                 {...register("agreeTerms")}
               />
               <label htmlFor="agreeTerms" className="text-sm">
-                I confirm that I am an independent escort or I am posting this advert on behalf of an independent escort. Also I agree to the <Link to="/terms" className="text-blue-500 hover:underline">Terms and Conditions</Link> and <Link to="/guidelines" className="text-blue-500 hover:underline">Advert Guidelines</Link>
+                I confirm that I am the owner of this advertisement or I am authorized to post this advertisement. I agree to the <Link to="/terms" className="text-blue-500 hover:underline">Terms and Conditions</Link> and <Link to="/guidelines" className="text-blue-500 hover:underline">Advert Guidelines</Link>
               </label>
             </div>
             {errors.agreeTerms && (
