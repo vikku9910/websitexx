@@ -598,7 +598,6 @@ export default function PostAdPage() {
             {errors.title && (
               <p className="text-red-500 text-xs mt-1">{errors.title.message}</p>
             )}
-            {!errors.title && <p className="text-red-500 text-xs mt-1">Please enter title</p>}
           </div>
           
           <div className="mb-4">
@@ -614,7 +613,6 @@ export default function PostAdPage() {
             {errors.description && (
               <p className="text-red-500 text-xs mt-1">{errors.description.message}</p>
             )}
-            {!errors.description && <p className="text-red-500 text-xs mt-1">Please enter description</p>}
           </div>
           
           <div className="mb-4">
@@ -832,7 +830,9 @@ export default function PostAdPage() {
                 onChange={handleFileChange}
                 ref={fileInputRef}
               />
-              <p className="text-red-500 text-xs mt-1">No file chosen</p>
+              {selectedFiles.length === 0 && (
+                <p className="text-xs mt-1 text-gray-500">Please select at least 2 images (max 5)</p>
+              )}
             </div>
             
             {/* Image Preview Section */}
