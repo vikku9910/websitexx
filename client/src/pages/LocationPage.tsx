@@ -49,6 +49,11 @@ export default function LocationPage() {
           {location && <span>{decodedLocation}</span>}
         </div>
         
+        {/* Highlighted Banner for VIP info */}
+        <div className="bg-blue-600 text-white p-2 rounded mb-3 text-center text-sm sm:text-base overflow-hidden overflow-ellipsis whitespace-nowrap">
+          📞 3*,4*, 5-Star Luxury 🔥 VIP GIRLS ✅ BY HAND CASH PAYMENTS💲 GENUINE SERVICE 👌 SAFE AND SECRE 👌 WE GUARANTEE FULL SATISFACTION INDEPENDENT MODELS 24x7
+        </div>
+        
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-semibold">{decodedLocation}</h1>
           <div>
