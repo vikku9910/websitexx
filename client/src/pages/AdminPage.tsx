@@ -113,6 +113,27 @@ export default function AdminPage() {
     },
   });
   
+  const verifyUserMobileMutation = useMutation({
+    mutationFn: async (userId: number) => {
+      const res = await apiRequest("POST", `/api/admin/users/${userId}/verify-mobile`);
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      toast({
+        title: "Success",
+        description: "User's mobile number has been verified",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+  
   const [pointsAmount, setPointsAmount] = useState<{ [userId: number]: number }>({});
   
   const updateUserPointsMutation = useMutation({
@@ -364,6 +385,7 @@ export default function AdminPage() {
                   <TableHead>Email / Username</TableHead>
                   <TableHead>Full Name</TableHead>
                   <TableHead>Mobile Number</TableHead>
+                  <TableHead>Verification</TableHead>
                   <TableHead>Points</TableHead>
                   <TableHead>Admin Status</TableHead>
                   <TableHead>Actions</TableHead>
@@ -389,6 +411,25 @@ export default function AdminPage() {
                           : "N/A"}
                       </TableCell>
                       <TableCell>{user.mobileNumber || "N/A"}</TableCell>
+                      <TableCell>
+                        {user.isMobileVerified ? (
+                          <Badge className="bg-green-600">
+                            <CheckCircle className="w-3 h-3 mr-1" />
+                            Verified
+                          </Badge>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="bg-blue-50 text-blue-600"
+                            onClick={() => verifyUserMobileMutation.mutate(user.id)}
+                            disabled={verifyUserMobileMutation.isPending}
+                          >
+                            <CheckCircle className="w-4 h-4 mr-1" />
+                            Verify Mobile
+                          </Button>
+                        )}
+                      </TableCell>
                       <TableCell className="flex items-center">
                         <div className="flex items-center">
                           <Wallet className="h-4 w-4 mr-1 text-primary" />

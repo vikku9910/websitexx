@@ -8,6 +8,7 @@ import { Link } from "wouter";
 import MobileVerification from "@/components/MobileVerification";
 import AdPromotion from "@/components/AdPromotion";
 import { useAuth } from "@/hooks/use-auth";
+import { queryClient } from "@/lib/queryClient";
 
 // Maximum file size: 5MB
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -280,6 +281,10 @@ export default function PostAdPage() {
       
       // Hide mobile verification and show promotion options
       setShowMobileVerification(false);
+      
+      // Update user information after mobile verification
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      
       setShowPromotion(true);
     } catch (error) {
       console.error('Error posting ad:', error);

@@ -3,16 +3,19 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { Ad } from "@shared/schema";
-import { Loader2, Edit, Trash, Eye, EyeOff, Check } from "lucide-react";
+import { Loader2, Edit, Trash, Eye, EyeOff, Check, Smartphone } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { useState } from "react";
+import MobileVerification from "@/components/MobileVerification";
 
 export default function MyListingsPage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [showMobileVerification, setShowMobileVerification] = useState(false);
   
   const { data: myAds, isLoading: adsLoading } = useQuery<Ad[]>({
     queryKey: ["/api/my-ads"],
@@ -99,8 +102,56 @@ export default function MyListingsPage() {
     );
   }
 
+  // Handle mobile verification completion
+  const handleVerificationComplete = () => {
+    setShowMobileVerification(false);
+    
+    // Update user information after mobile verification
+    queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/my-ads"] });
+    
+    toast({
+      title: "Mobile Verification Completed",
+      description: "Your mobile number has been verified successfully. You can now promote your ads to make them public.",
+      duration: 5000,
+    });
+  };
+  
+  // Function to handle verification click
+  const handleVerifyClick = () => {
+    if (!user?.mobileNumber) {
+      toast({
+        title: "Mobile number required",
+        description: "Please update your profile with a mobile number first.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setShowMobileVerification(true);
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
+      {!user?.isMobileVerified && (
+        <Card className="mb-6 border-yellow-400">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center">
+              <Smartphone className="mr-2 h-5 w-5 text-yellow-500" />
+              Mobile Verification Required
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-gray-600 mb-4">
+              Your mobile number needs to be verified to fully activate your account and make your ads public.
+            </p>
+            <Button onClick={handleVerifyClick} className="bg-yellow-500 hover:bg-yellow-600">
+              Verify Mobile Number
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+      
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl">My Listings</CardTitle>
@@ -130,7 +181,8 @@ export default function MyListingsPage() {
                       {/* Show status message if ad is not public */}
                       {!ad.isPublic && (
                         <div className="mt-2 mb-2 text-red-500 font-medium">
-                          Status: Your ad is not listed yet. Please Promote it
+                          Status: Your ad is not listed yet. 
+                          {!user?.isMobileVerified ? " Please verify your mobile number and promote it." : " Please promote it."}
                         </div>
                       )}
                       
@@ -176,6 +228,7 @@ export default function MyListingsPage() {
                           size="sm"
                           asChild
                           className="bg-green-500 hover:bg-green-600"
+                          disabled={!user?.isMobileVerified}
                         >
                           <Link href={`/ad/${ad.id}/promote`}>
                             Promote
@@ -205,6 +258,15 @@ export default function MyListingsPage() {
           )}
         </CardContent>
       </Card>
+      
+      {/* Mobile verification modal */}
+      {showMobileVerification && user?.mobileNumber && (
+        <MobileVerification
+          mobileNumber={user.mobileNumber}
+          onVerificationComplete={handleVerificationComplete}
+          onSkip={() => setShowMobileVerification(false)}
+        />
+      )}
     </div>
   );
 }

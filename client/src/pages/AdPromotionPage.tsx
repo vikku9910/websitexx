@@ -78,15 +78,30 @@ export default function AdPromotionPage() {
     },
   });
 
-  // Make sure the ad belongs to the current user
+  // Make sure the ad belongs to the current user and user is mobile verified
   useEffect(() => {
-    if (ad && user && ad.userId !== user.id) {
-      toast({
-        title: "Unauthorized",
-        description: "You can only promote your own ads.",
-        variant: "destructive",
-      });
-      setLocation("/my-listings");
+    if (ad && user) {
+      // Check if ad belongs to user
+      if (ad.userId !== user.id) {
+        toast({
+          title: "Unauthorized",
+          description: "You can only promote your own ads.",
+          variant: "destructive",
+        });
+        setLocation("/my-listings");
+        return;
+      }
+      
+      // Check if user's mobile is verified
+      if (!user.isMobileVerified) {
+        toast({
+          title: "Mobile Verification Required",
+          description: "You need to verify your mobile number before promoting an ad. Please go to My Listings page to verify.",
+          variant: "destructive",
+        });
+        setLocation("/my-listings");
+        return;
+      }
     }
   }, [ad, user, setLocation, toast]);
 

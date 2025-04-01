@@ -9,6 +9,7 @@ export const users = pgTable("users", {
   firstName: text("first_name"),
   lastName: text("last_name"),
   mobileNumber: text("mobile_number"),
+  isMobileVerified: boolean("is_mobile_verified").default(false),
   isAdmin: boolean("is_admin").default(false),
   points: integer("points").default(0),
 });

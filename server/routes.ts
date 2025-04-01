@@ -339,6 +339,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Verify user's mobile number by admin
+  app.post("/api/admin/users/:id/verify-mobile", isAdmin, async (req, res) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ error: "Invalid user ID" });
+    }
+    
+    try {
+      const user = await storage.getUser(id);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      const updatedUser = await storage.updateUser(id, { isMobileVerified: true });
+      if (!updatedUser) {
+        return res.status(404).json({ error: "Failed to update user" });
+      }
+      
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error verifying user mobile:", error);
+      res.status(500).json({ error: "Failed to verify mobile number" });
+    }
+  });
+  
   // Verify an ad
   app.post("/api/admin/ads/:id/verify", isAdmin, async (req, res) => {
     const id = parseInt(req.params.id);
@@ -973,6 +998,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // OTP verified successfully, delete it from store
       otpStore.delete(mobileNumber);
+      
+      // If the user is logged in, update their mobile verification status
+      if (req.isAuthenticated()) {
+        const userId = req.user!.id;
+        
+        // Update user mobile verification status
+        storage.updateUser(userId, { isMobileVerified: true })
+          .then(() => console.log(`User ${userId} mobile number verified successfully`))
+          .catch(err => console.error("Error updating user mobile verification status:", err));
+        
+        // Also update any ads by this user that are not verified
+        storage.getAdsByUserId(userId)
+          .then(ads => {
+            // Find ads that are not verified
+            const unverifiedAds = ads.filter(ad => !ad.isVerified);
+            
+            // Update each unverified ad
+            unverifiedAds.forEach(ad => {
+              storage.updateAd(ad.id, { isVerified: true })
+                .then(() => console.log(`Ad ${ad.id} automatically verified after mobile verification`))
+                .catch(err => console.error(`Error auto-verifying ad ${ad.id}:`, err));
+            });
+          })
+          .catch(err => console.error("Error fetching user's ads for verification update:", err));
+      }
       
       res.json({ success: true, message: "OTP verified successfully" });
     } catch (error) {
