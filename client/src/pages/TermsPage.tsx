@@ -20,8 +20,6 @@ export default function TermsPage() {
         <div className="max-w-3xl mx-auto py-8">
           <h1 className="text-3xl font-bold text-gray-800 mb-6">Terms And Conditions</h1>
           
-          <p className="text-gray-600 text-sm mb-6">Last updated: {new Date().toLocaleDateString()}</p>
-          
           {isLoading ? (
             <p className="text-gray-500 py-8">Loading content...</p>
           ) : (
