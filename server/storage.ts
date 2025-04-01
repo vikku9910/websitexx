@@ -512,11 +512,14 @@ Thank you for choosing ClassiSpot for your classified ad needs!
     const ad = this.ads.get(adId);
     if (!ad) return undefined;
     
+    // When an ad is promoted, automatically make it public
     const updatedAd = { 
       ...ad, 
       promotionId, 
       promotionPosition: position, 
-      promotionExpiresAt: expiresAt 
+      promotionExpiresAt: expiresAt,
+      // If the ad is being promoted (promotionId is not null), make it public
+      isPublic: promotionId !== null ? true : ad.isPublic
     };
     this.ads.set(adId, updatedAd);
     return updatedAd;

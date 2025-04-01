@@ -38,23 +38,32 @@ export default function AdPromotionPage() {
   const canPromote = (planId: number): boolean => {
     if (!user || !promotionPlans) return false;
     const plan = promotionPlans.find(p => p.id === planId);
-    return plan ? user.points >= plan.pointsCost : false;
+    return plan ? (user.points || 0) >= plan.pointsCost : false;
   };
 
   // Promotion mutation
   const promoteMutation = useMutation({
     mutationFn: async (planId: number) => {
+      // First, promote the ad with the selected plan
       const response = await apiRequest("POST", `/api/ads/${adId}/promote`, { planId });
-      return response.json();
+      const promotionData = await response.json();
+      
+      // Then, automatically make the ad public if it's not already
+      if (ad && !ad.isPublic) {
+        await apiRequest("PATCH", `/api/ads/${adId}/toggle-public`, { isPublic: true });
+      }
+      
+      return promotionData;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/ads/${adId}`] });
       queryClient.invalidateQueries({ queryKey: ["/api/my-ads"] });
       queryClient.invalidateQueries({ queryKey: ["/api/user"] }); // To update points
+      queryClient.invalidateQueries({ queryKey: ["/api/ads"] }); // Update the public ads list
       
       toast({
         title: "Ad promoted successfully",
-        description: "Your ad has been promoted and is now visible to everyone.",
+        description: "Your ad has been promoted and is now public. It is visible to everyone!",
       });
       
       // Redirect to ad details page
