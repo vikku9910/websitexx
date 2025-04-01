@@ -147,6 +147,15 @@ export default function MobileVerification({
                 >
                   Auto-fill
                 </button>
+                <button 
+                  className="ml-2 text-xs bg-amber-100 hover:bg-amber-200 p-1 rounded"
+                  onClick={() => {
+                    setOtp(testOtp);
+                    handleVerify();
+                  }}
+                >
+                  Auto-fill & Verify
+                </button>
               </div>
             </div>
           )}
