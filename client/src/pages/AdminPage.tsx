@@ -722,7 +722,7 @@ export default function AdminPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    {['about', 'contact', 'terms', 'privacy', 'sitemap'].map((page) => (
+                    {['homepage', 'about', 'contact', 'terms', 'privacy', 'sitemap'].map((page) => (
                       <Button
                         key={page}
                         variant={selectedPage === page ? "default" : "outline"}

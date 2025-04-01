@@ -175,14 +175,38 @@ export class MemStorage implements IStorage {
     
     // Set default page contents
     const defaultPages = [
-      'about', 'contact', 'terms', 'privacy', 'sitemap'
+      'homepage', 'about', 'contact', 'terms', 'privacy', 'sitemap'
     ];
     
     defaultPages.forEach((page) => {
       let pageContent = `Default content for ${page} page. This can be edited by an admin.`;
       
+      // Set specific content for the homepage
+      if (page === 'homepage') {
+        pageContent = `
+<h2 class="text-gray-800 font-semibold text-lg mb-2">Welcome to ClassiSpot!</h2>
+
+<p class="text-gray-600 text-sm mb-4">
+  Your trusted local marketplace for buying, selling and finding what you need.
+</p>
+
+<p class="text-gray-600 text-sm mb-4">
+  We connect local buyers and sellers in a secure environment. Our platform makes it simple to post and browse classified ads across multiple categories including services, real estate, jobs, electronics, vehicles, and more.
+</p>
+
+<p class="text-gray-600 text-sm mb-4">
+  <strong>Why choose ClassiSpot?</strong>
+  <ul class="list-disc pl-6 mt-2">
+    <li>Free ad posting</li>
+    <li>Location-specific browsing</li>
+    <li>Mobile verification for user safety</li>
+    <li>Premium promotion options to boost visibility</li>
+  </ul>
+</p>
+`;
+      }
       // Set specific content for the about page
-      if (page === 'about') {
+      else if (page === 'about') {
         pageContent = `
 # About ClassiSpot
 
