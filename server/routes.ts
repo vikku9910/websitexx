@@ -27,6 +27,17 @@ const isAdmin = (req: Request, res: any, next: any) => {
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes
   setupAuth(app);
+  
+  // Temporary route to download server files
+  app.get("/api/download-server-files", (_req, res) => {
+    const filePath = "./server_files.tar.gz";
+    res.download(filePath, "server_files.tar.gz", (err) => {
+      if (err) {
+        console.error("Download error:", err);
+        res.status(500).send("Download failed");
+      }
+    });
+  });
 
   // API routes for locations and countries
   app.get("/api/locations", (_req, res) => {
