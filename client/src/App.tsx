@@ -18,6 +18,7 @@ import SitemapPage from "@/pages/SitemapPage";
 import AdminPage from "@/pages/AdminPage";
 import ProfilePage from "@/pages/ProfilePage";
 import MyListingsPage from "@/pages/MyListingsPage";
+import AdPromotionPage from "@/pages/AdPromotionPage";
 import Layout from "@/components/Layout";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute, AdminRoute } from "@/lib/protected-route";
@@ -32,6 +33,7 @@ function Router() {
         <Route path="/forgot-password" component={ForgotPasswordPage} />
         <ProtectedRoute path="/post-ad" component={PostAdPage} />
         <ProtectedRoute path="/edit-ad/:id" component={EditAdPage} />
+        <ProtectedRoute path="/ad/:id/promote" component={AdPromotionPage} />
         <Route path="/location/:location" component={LocationPage} />
         <Route path="/ad/:id" component={AdDetailPage} />
         <Route path="/about" component={AboutPage} />

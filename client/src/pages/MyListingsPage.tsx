@@ -126,6 +126,14 @@ export default function MyListingsPage() {
                       <p className="text-gray-700 line-clamp-2">
                         {ad.description.substring(0, 150)}...
                       </p>
+                      
+                      {/* Show status message if ad is not public */}
+                      {!ad.isPublic && (
+                        <div className="mt-2 mb-2 text-red-500 font-medium">
+                          Status: Your ad is not listed yet. Please Promote it
+                        </div>
+                      )}
+                      
                       <div className="mt-2 flex items-center space-x-2 flex-wrap">
                         {ad.isVerified !== null && (
                           <Badge variant={ad.isVerified ? "default" : "outline"} className="mr-2">
@@ -146,24 +154,8 @@ export default function MyListingsPage() {
                       </div>
                     </div>
                     <div className="flex space-x-2">
-                      <Button
-                        variant={ad.isPublic ? "outline" : "default"}
-                        size="sm"
-                        onClick={() => handleTogglePublic(ad)}
-                        disabled={togglePublicMutation.isPending}
-                      >
-                        {togglePublicMutation.isPending ? (
-                          <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                        ) : ad.isPublic ? (
-                          <EyeOff className="h-4 w-4 mr-1" />
-                        ) : (
-                          <Eye className="h-4 w-4 mr-1" />
-                        )}
-                        {ad.isPublic ? "Make Private" : "Make Public"}
-                      </Button>
                       <Button variant="outline" size="sm" asChild>
                         <Link href={`/edit-ad/${ad.id}`}>
-                          <Edit className="h-4 w-4 mr-1" />
                           Edit
                         </Link>
                       </Button>
@@ -175,11 +167,21 @@ export default function MyListingsPage() {
                       >
                         {deleteMutation.isPending ? (
                           <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                        ) : (
-                          <Trash className="h-4 w-4 mr-1" />
-                        )}
-                        Delete
+                        ) : "Delete"}
                       </Button>
+                      
+                      {!ad.isPublic && (
+                        <Button 
+                          variant="default" 
+                          size="sm"
+                          asChild
+                          className="bg-green-500 hover:bg-green-600"
+                        >
+                          <Link href={`/ad/${ad.id}/promote`}>
+                            Promote
+                          </Link>
+                        </Button>
+                      )}
                     </div>
                   </div>
                   
