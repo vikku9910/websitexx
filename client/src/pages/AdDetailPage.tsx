@@ -366,8 +366,9 @@ export default function AdDetailPage() {
               </div>
             </div>
             
-            {/* Promotion Status */}
-            {ad.promotionId && ad.promotionPosition && ad.promotionExpiresAt && (
+            {/* Promotion Status - Only visible to ad owner and admins */}
+            {ad.promotionId && ad.promotionPosition && ad.promotionExpiresAt && user && 
+             (user.id === ad.userId || user.isAdmin) && (
               <div className="mt-6 p-4 bg-amber-50 border border-amber-100 rounded-md flex items-center gap-2">
                 <Award className="text-amber-500" />
                 <div>
