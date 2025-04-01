@@ -830,9 +830,7 @@ export default function PostAdPage() {
                 onChange={handleFileChange}
                 ref={fileInputRef}
               />
-              {selectedFiles.length === 0 && (
-                <p className="text-xs mt-1 text-gray-500">Please select at least 2 images (max 5)</p>
-              )}
+              <p className="text-xs mt-1 text-gray-500">Please select at least 2 images (max 5)</p>
             </div>
             
             {/* Image Preview Section */}
