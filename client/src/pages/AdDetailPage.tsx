@@ -244,6 +244,86 @@ export default function AdDetailPage() {
               </div>
             )}
             
+            {/* Profile Details */}
+            <div className="mb-4">
+              <p className="text-sm text-gray-600 mb-4">
+                <span className="font-medium">Advert Type: </span>Personal
+                <span className="mx-2">|</span>
+                <span className="font-medium">Privacy: </span>{ad.isPublic ? 'Public' : 'Private'}
+                {ad.category && (
+                  <>
+                    <span className="mx-2">|</span>
+                    <span className="font-medium">Category: </span>{ad.category}
+                  </>
+                )}
+              </p>
+              
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                {ad.age && (
+                  <div className="flex items-start">
+                    <div className="w-5 h-5 flex-shrink-0 mr-2 text-green-500">✓</div>
+                    <p className="text-sm"><span className="font-medium">Age:</span> {ad.age}</p>
+                  </div>
+                )}
+                
+                {ad.nationality && (
+                  <div className="flex items-start">
+                    <div className="w-5 h-5 flex-shrink-0 mr-2 text-green-500">✓</div>
+                    <p className="text-sm"><span className="font-medium">Nationality:</span> {ad.nationality}</p>
+                  </div>
+                )}
+                
+                {ad.gender && (
+                  <div className="flex items-start">
+                    <div className="w-5 h-5 flex-shrink-0 mr-2 text-green-500">✓</div>
+                    <p className="text-sm"><span className="font-medium">Gender:</span> {ad.gender}</p>
+                  </div>
+                )}
+                
+                {ad.eyeColor && (
+                  <div className="flex items-start">
+                    <div className="w-5 h-5 flex-shrink-0 mr-2 text-green-500">✓</div>
+                    <p className="text-sm"><span className="font-medium">Eye Color:</span> {ad.eyeColor}</p>
+                  </div>
+                )}
+                
+                {ad.hairColor && (
+                  <div className="flex items-start">
+                    <div className="w-5 h-5 flex-shrink-0 mr-2 text-green-500">✓</div>
+                    <p className="text-sm"><span className="font-medium">Hair Color:</span> {ad.hairColor}</p>
+                  </div>
+                )}
+                
+                {ad.height && (
+                  <div className="flex items-start">
+                    <div className="w-5 h-5 flex-shrink-0 mr-2 text-green-500">✓</div>
+                    <p className="text-sm"><span className="font-medium">Height:</span> {ad.height}</p>
+                  </div>
+                )}
+                
+                {ad.weight && (
+                  <div className="flex items-start">
+                    <div className="w-5 h-5 flex-shrink-0 mr-2 text-green-500">✓</div>
+                    <p className="text-sm"><span className="font-medium">Weight:</span> {ad.weight}</p>
+                  </div>
+                )}
+              </div>
+              
+              {ad.services && (
+                <div className="mb-4">
+                  <h3 className="text-md font-semibold mb-2">Services:</h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    {ad.services.split(',').map((service, index) => (
+                      <div key={index} className="flex items-start">
+                        <div className="w-5 h-5 flex-shrink-0 mr-2 text-green-500">✓</div>
+                        <p className="text-sm">{service.trim()}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+            
             <div className="mb-6">
               <h2 className="text-lg font-medium text-gray-800 mb-2">Description</h2>
               <p className="text-gray-600 whitespace-pre-wrap">{ad.description}</p>
