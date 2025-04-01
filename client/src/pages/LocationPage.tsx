@@ -121,7 +121,7 @@ export default function LocationPage() {
               return (
                 <div 
                   key={ad.id} 
-                  className={`border rounded-md overflow-hidden hover:shadow-md transition-shadow
+                  className={`border rounded-xl overflow-hidden hover:shadow-md transition-shadow
                     ${isRank1 ? 'border-amber-300 bg-amber-50' : 
                       isTop10 ? 'border-blue-200 bg-blue-50' : 'border-gray-200 bg-white'}`
                   }
@@ -186,7 +186,7 @@ export default function LocationPage() {
                     <div className="flex flex-col items-center justify-center p-3 w-32">
                       <a 
                         href={`tel:${ad.contactNumber}`}
-                        className="flex items-center justify-center bg-green-50 px-3 py-1 rounded-md text-center mb-1 w-full"
+                        className="flex items-center justify-center bg-green-50 px-3 py-1 rounded-xl text-center mb-1 w-full"
                         onClick={(e) => e.stopPropagation()}
                       >
                         <Phone className="h-3 w-3 mr-1" />
