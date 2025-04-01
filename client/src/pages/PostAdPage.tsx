@@ -569,31 +569,6 @@ export default function PostAdPage() {
           </div>
           
           <div className="mb-4">
-            <label htmlFor="city" className="block text-gray-700 text-sm mb-2">
-              Area/Locality*
-            </label>
-            <select
-              id="city"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4ebb78]"
-              {...register("city")}
-              disabled={!selectedState}
-            >
-              <option value="">Select Area</option>
-              {selectedState && (stateCities[selectedState] || stateCities["default"])?.map((city, index) => (
-                <option key={index} value={city}>
-                  {city}
-                </option>
-              ))}
-            </select>
-            {errors.city && (
-              <p className="text-red-500 text-xs mt-1">{errors.city.message}</p>
-            )}
-            {!selectedState && (
-              <p className="text-gray-500 text-xs mt-1">Please select a city first</p>
-            )}
-          </div>
-          
-          <div className="mb-4">
             <label htmlFor="category" className="block text-gray-700 text-sm mb-2">
               Category*
             </label>
