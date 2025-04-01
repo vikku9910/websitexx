@@ -2,7 +2,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import { AlertCircle, Home } from "lucide-react";
 import { Link } from "wouter";
 import MobileVerification from "@/components/MobileVerification";
@@ -16,8 +16,8 @@ const MIN_PHOTOS = 2;
 const MAX_PHOTOS = 5;
 
 const adSchema = z.object({
-  state: z.string().min(1, "State is required"),
-  city: z.string().min(1, "City is required"),
+  state: z.string().min(1, "City is required"),
+  city: z.string().optional(), // Make city optional as we're only using state now
   category: z.string().min(1, "Category is required"),
   title: z.string().min(1, "Title is required"),
   description: z.string().min(10, "Description must be at least 10 characters"),
@@ -83,28 +83,9 @@ export default function PostAdPage() {
     },
   });
   
-  // Watch the state field to update cities
-  const selectedState = watch("state");
+  // No need to watch state field anymore
   
-  // Define areas/localities for each city
-  const stateCities: Record<string, string[]> = {
-    "Mumbai": ["Andheri", "Borivali", "Dadar", "Juhu", "Bandra", "Colaba", "Powai", "Malad", "Goregaon", "Kandivali"],
-    "Delhi": ["Connaught Place", "Karol Bagh", "Lajpat Nagar", "Hauz Khas", "Dwarka", "Rohini", "Mayur Vihar", "Saket", "Paharganj"],
-    "Pune": ["Koregaon Park", "Viman Nagar", "Baner", "Kothrud", "Hinjewadi", "Shivaji Nagar", "Hadapsar", "Aundh", "Magarpatta"],
-    "Bengaluru": ["Indiranagar", "Koramangala", "MG Road", "Whitefield", "JP Nagar", "HSR Layout", "Marathahalli", "Jayanagar", "BTM Layout"],
-    "Hyderabad": ["Banjara Hills", "Jubilee Hills", "HITEC City", "Gachibowli", "Ameerpet", "Secunderabad", "Madhapur", "Kukatpally"],
-    "Chennai": ["T Nagar", "Adyar", "Anna Nagar", "Nungambakkam", "Mylapore", "Porur", "Velachery", "Besant Nagar", "Tambaram"],
-    "Kolkata": ["Park Street", "Salt Lake", "New Town", "Ballygunge", "Howrah", "Alipore", "Behala", "Dum Dum", "Garia"],
-    "Ahmedabad": ["Navrangpura", "Satellite", "Bodakdev", "SG Highway", "CG Road", "Prahlad Nagar", "Vastrapur", "Maninagar"],
-    "Jaipur": ["C-Scheme", "Malviya Nagar", "Vaishali Nagar", "Raja Park", "Mansarovar", "Jagatpura", "Tonk Road", "Adarsh Nagar"],
-    // Default areas for other cities
-    "default": ["Central", "North", "South", "East", "West", "Downtown", "Uptown", "Midtown", "Suburb"]
-  };
-  
-  // When state changes, reset city
-  useEffect(() => {
-    setValue("city", "");
-  }, [selectedState, setValue]);
+  // No need to reset city as we don't use it anymore
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -193,7 +174,7 @@ export default function PostAdPage() {
       }
       
       // Validate minimum and maximum photo requirements
-      if (selectedFiles.length < MIN_PHOTOS) {
+      if (!selectedFiles || selectedFiles.length < MIN_PHOTOS) {
         toast({
           title: "Error",
           description: `Please upload at least ${MIN_PHOTOS} photos`,
@@ -258,7 +239,7 @@ export default function PostAdPage() {
       const adData = {
         title: formData.formValues.title,
         description: formData.formValues.description,
-        location: formData.formValues.state + " - " + formData.formValues.city,
+        location: formData.formValues.state, // Just use the state field as city
         category: formData.formValues.category,
         contactNumber: formData.formValues.mobileNumber,
         contactEmail: user?.username || "",
@@ -327,7 +308,7 @@ export default function PostAdPage() {
       const adData = {
         title: formData.formValues.title,
         description: formData.formValues.description,
-        location: formData.formValues.state + " - " + formData.formValues.city,
+        location: formData.formValues.state, // Just use the state field as city
         category: formData.formValues.category,
         contactNumber: formData.formValues.mobileNumber,
         contactEmail: user?.username || "",
