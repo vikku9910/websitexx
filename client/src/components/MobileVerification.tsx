@@ -160,10 +160,9 @@ export default function MobileVerification({
               <div className="flex items-start gap-2">
                 <Smartphone className="h-5 w-5 text-green-500 mt-0.5" />
                 <div>
-                  <h4 className="font-semibold text-green-800">Real SMS Sent</h4>
+                  <h4 className="font-semibold text-green-800">SMS Sent</h4>
                   <p className="text-sm text-green-700">
-                    A verification code has been sent to your mobile number via SMS.
-                    Please check your messages and enter the 6-digit code above.
+                    Please check your phone for the verification code.
                   </p>
                 </div>
               </div>
