@@ -46,9 +46,10 @@ export type AdPromotionPlan = typeof adPromotionPlans.$inferSelect;
 // Ad Promotions tracking model
 export const adPromotions = pgTable("ad_promotions", {
   id: serial("id").primaryKey(),
-  adId: integer("ad_id").notNull(),
   userId: integer("user_id").notNull(),
-  planId: integer("plan_id").notNull(),
+  adId: integer("ad_id"),  // Make it optional for pre-promotion
+  planId: integer("plan_id"),  // Optional for direct promotions
+  position: text("position"),  // Store position directly for pre-promotion
   startedAt: timestamp("started_at").defaultNow().notNull(),
   expiresAt: timestamp("expires_at").notNull(),
   pointsSpent: integer("points_spent").notNull(),
@@ -77,6 +78,7 @@ export const ads = pgTable("ads", {
   age: integer("age"),
   isVerified: boolean("is_verified").default(false),
   isActive: boolean("is_active").default(true),
+  isPublic: boolean("is_public").default(false), // Default to draft mode
   viewCount: integer("view_count").default(0),
   // Promotion fields
   promotionId: integer("promotion_id"),

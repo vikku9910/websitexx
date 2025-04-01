@@ -58,6 +58,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Ad related routes
   
+  // Get all public ads for homepage
+  app.get("/api/ads", async (_req, res) => {
+    try {
+      const ads = await storage.getAllPublicAds();
+      res.json(ads);
+    } catch (error) {
+      console.error("Error getting public ads:", error);
+      res.status(500).json({ error: "Failed to get ads" });
+    }
+  });
+  
   // Get ads by location
   app.get("/api/ads/location/:location", async (req, res) => {
     const { location } = req.params;
@@ -214,6 +225,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting ad:", error);
       res.status(500).json({ error: "Failed to delete ad" });
+    }
+  });
+  
+  // Toggle ad public status - used to publish draft ads
+  app.patch("/api/ads/:id/toggle-public", isAuthenticated, async (req, res) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ error: "Invalid ad ID" });
+    }
+    
+    try {
+      const userId = req.user!.id;
+      const { isPublic } = req.body;
+      
+      if (isPublic === undefined) {
+        return res.status(400).json({ error: "isPublic status is required" });
+      }
+      
+      const ad = await storage.getAd(id);
+      
+      if (!ad) {
+        return res.status(404).json({ error: "Ad not found" });
+      }
+      
+      // Check if the ad belongs to the current user
+      if (ad.userId !== userId && !req.user!.isAdmin) {
+        return res.status(403).json({ error: "Unauthorized to update this ad" });
+      }
+      
+      const updatedAd = await storage.toggleAdPublic(id, isPublic);
+      
+      if (updatedAd) {
+        res.status(200).json(updatedAd);
+      } else {
+        res.status(500).json({ error: "Failed to update ad status" });
+      }
+    } catch (error) {
+      console.error("Error updating ad public status:", error);
+      res.status(500).json({ error: "Failed to update ad status" });
     }
   });
 

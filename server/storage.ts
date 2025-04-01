@@ -282,7 +282,7 @@ Thank you for choosing ClassiSpot for your classified ad needs!
 
   async getAdsByLocation(location: string): Promise<Ad[]> {
     return Array.from(this.ads.values()).filter(
-      (ad) => ad.location.toLowerCase() === location.toLowerCase() && ad.isActive
+      (ad) => ad.location.toLowerCase() === location.toLowerCase() && ad.isActive && ad.isPublic
     );
   }
 
@@ -301,6 +301,7 @@ Thank you for choosing ClassiSpot for your classified ad needs!
       viewCount: 0,
       isActive: true,
       isVerified: false,
+      isPublic: false, // Default to draft/private until verification and promotion
       age: insertAd.age || null,
       promotionId: null,
       promotionExpiresAt: null,
@@ -331,6 +332,10 @@ Thank you for choosing ClassiSpot for your classified ad needs!
     }
   }
   
+  async getAllPublicAds(): Promise<Ad[]> {
+    return Array.from(this.ads.values()).filter(ad => ad.isPublic && ad.isActive);
+  }
+  
   async getAllAds(): Promise<Ad[]> {
     return Array.from(this.ads.values());
   }
@@ -349,6 +354,15 @@ Thank you for choosing ClassiSpot for your classified ad needs!
     if (!ad) return undefined;
     
     const updatedAd = { ...ad, isActive };
+    this.ads.set(id, updatedAd);
+    return updatedAd;
+  }
+  
+  async toggleAdPublic(id: number, isPublic: boolean): Promise<Ad | undefined> {
+    const ad = this.ads.get(id);
+    if (!ad) return undefined;
+    
+    const updatedAd = { ...ad, isPublic };
     this.ads.set(id, updatedAd);
     return updatedAd;
   }
@@ -481,9 +495,10 @@ Thank you for choosing ClassiSpot for your classified ad needs!
     const id = this.adPromotionCurrentId++;
     const newPromotion: AdPromotion = {
       id,
-      adId: promotion.adId,
       userId: promotion.userId,
-      planId: promotion.planId,
+      adId: typeof promotion.adId !== 'undefined' ? promotion.adId : null,
+      planId: typeof promotion.planId !== 'undefined' ? promotion.planId : null,
+      position: typeof promotion.position !== 'undefined' ? promotion.position : null,
       startedAt: new Date(),
       expiresAt: promotion.expiresAt,
       pointsSpent: promotion.pointsSpent,
