@@ -1,10 +1,10 @@
-import { useState } from "react";
 import { useParams, Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Ad } from "@shared/schema";
-import { Loader2, MessageCircle, Phone, MapPin, Award, TrendingUp } from "lucide-react";
+import { Loader2, Phone, MapPin, Award, TrendingUp } from "lucide-react";
 import { locations } from "@/data/locations";
 import { Badge } from "@/components/ui/badge";
+import LocationContent from "@/components/LocationContent";
 
 export default function LocationPage() {
   const { location } = useParams();
@@ -71,6 +71,12 @@ export default function LocationPage() {
           </div>
         </div>
       </div>
+      
+      {/* Location Content Block */}
+      <LocationContent 
+        locationName={decodedLocation} 
+        className="mb-6"
+      />
 
       {(!ads || ads.length === 0) ? (
         <div className="bg-gray-50 border border-gray-200 text-gray-700 px-4 py-10 rounded text-center">
