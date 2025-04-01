@@ -2,7 +2,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
-import { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { AlertCircle, Home } from "lucide-react";
 import { Link } from "wouter";
 import MobileVerification from "@/components/MobileVerification";
@@ -59,6 +59,8 @@ export default function PostAdPage() {
     register,
     handleSubmit,
     reset,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<AdFormValues>({
     resolver: zodResolver(adSchema),
@@ -80,6 +82,29 @@ export default function PostAdPage() {
       agreeTerms: false,
     },
   });
+  
+  // Watch the state field to update cities
+  const selectedState = watch("state");
+  
+  // Define cities for each state
+  const stateCities: Record<string, string[]> = {
+    "Maharashtra": ["Mumbai", "Pune", "Nagpur", "Thane", "Aurangabad", "Nashik", "Borivali", "Andheri", "Bandra", "Juhu", "Dadar"],
+    "Delhi": ["New Delhi", "North Delhi", "South Delhi", "East Delhi", "West Delhi"],
+    "Karnataka": ["Bangalore", "Mysore", "Hubli", "Mangalore", "Belgaum"],
+    "Tamil Nadu": ["Chennai", "Coimbatore", "Madurai", "Salem", "Trichy"],
+    "Telangana": ["Hyderabad", "Warangal", "Nizamabad", "Karimnagar", "Khammam"],
+    "West Bengal": ["Kolkata", "Siliguri", "Asansol", "Durgapur", "Howrah"],
+    "Gujarat": ["Ahmedabad", "Surat", "Vadodara", "Rajkot", "Gandhinagar"],
+    "Uttar Pradesh": ["Lucknow", "Kanpur", "Agra", "Varanasi", "Meerut", "Noida"],
+    "Rajasthan": ["Jaipur", "Jodhpur", "Udaipur", "Kota", "Ajmer"],
+    "Punjab": ["Chandigarh", "Ludhiana", "Amritsar", "Jalandhar", "Patiala"],
+    // Add more states and cities as needed
+  };
+  
+  // When state changes, reset city
+  useEffect(() => {
+    setValue("city", "");
+  }, [selectedState, setValue]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -497,11 +522,35 @@ export default function PostAdPage() {
               {...register("state")}
             >
               <option value="">Select State</option>
-              <option value="Mumbai">Mumbai</option>
+              <option value="Andhra Pradesh">Andhra Pradesh</option>
+              <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+              <option value="Assam">Assam</option>
+              <option value="Bihar">Bihar</option>
+              <option value="Chhattisgarh">Chhattisgarh</option>
               <option value="Delhi">Delhi</option>
-              <option value="Bangalore">Bangalore</option>
-              <option value="Chennai">Chennai</option>
-              <option value="Hyderabad">Hyderabad</option>
+              <option value="Goa">Goa</option>
+              <option value="Gujarat">Gujarat</option>
+              <option value="Haryana">Haryana</option>
+              <option value="Himachal Pradesh">Himachal Pradesh</option>
+              <option value="Jharkhand">Jharkhand</option>
+              <option value="Karnataka">Karnataka</option>
+              <option value="Kerala">Kerala</option>
+              <option value="Madhya Pradesh">Madhya Pradesh</option>
+              <option value="Maharashtra">Maharashtra</option>
+              <option value="Manipur">Manipur</option>
+              <option value="Meghalaya">Meghalaya</option>
+              <option value="Mizoram">Mizoram</option>
+              <option value="Nagaland">Nagaland</option>
+              <option value="Odisha">Odisha</option>
+              <option value="Punjab">Punjab</option>
+              <option value="Rajasthan">Rajasthan</option>
+              <option value="Sikkim">Sikkim</option>
+              <option value="Tamil Nadu">Tamil Nadu</option>
+              <option value="Telangana">Telangana</option>
+              <option value="Tripura">Tripura</option>
+              <option value="Uttar Pradesh">Uttar Pradesh</option>
+              <option value="Uttarakhand">Uttarakhand</option>
+              <option value="West Bengal">West Bengal</option>
             </select>
             {errors.state && (
               <p className="text-red-500 text-xs mt-1">{errors.state.message}</p>
@@ -516,16 +565,20 @@ export default function PostAdPage() {
               id="city"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4ebb78]"
               {...register("city")}
+              disabled={!selectedState}
             >
               <option value="">Select City</option>
-              <option value="Borivali">Borivali</option>
-              <option value="Andheri">Andheri</option>
-              <option value="Bandra">Bandra</option>
-              <option value="Juhu">Juhu</option>
-              <option value="Dadar">Dadar</option>
+              {selectedState && stateCities[selectedState]?.map((city, index) => (
+                <option key={index} value={city}>
+                  {city}
+                </option>
+              ))}
             </select>
             {errors.city && (
               <p className="text-red-500 text-xs mt-1">{errors.city.message}</p>
+            )}
+            {!selectedState && (
+              <p className="text-gray-500 text-xs mt-1">Please select a state first</p>
             )}
           </div>
           
