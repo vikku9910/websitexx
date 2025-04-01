@@ -909,7 +909,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Prepare Fast2SMS API request
+      // Prepare Fast2SMS API request using the exact format provided
       const apiKey = process.env.FAST2SMS_API_KEY || "3n5VZ4n9PPo7WKiVBm4ev9TRwRKdZBZQZrBbndP8v7PVuyyx4rEefo6XTjHV";
       
       if (!apiKey) {
@@ -918,14 +918,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const url = "https://www.fast2sms.com/dev/bulkV2";
       
-      // Try the OTP route first with the exact format provided
+      // Using the exact format provided in the example
       const otpParams = new URLSearchParams({
         authorization: apiKey,
-        route: "otp",
-        variables_values: otp,
-        flash: "1", // Changed to "1" as per provided format
+        route: "q",
+        message: `Your Verification Code : ${otp}`,
+        flash: "0",
         numbers: mobileNumber,
-        schedule_time: "" // Added empty schedule_time as per provided format
+        schedule_time: ""
       });
       
       const otpApiUrl = `${url}?${otpParams.toString()}`;
@@ -943,11 +943,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const responseData = responseText ? JSON.parse(responseText) : {};
         console.log("Fast2SMS API parsed response:", responseData);
         
+        // Check response for the 'q' route format
         if (responseData && responseData.return === true) {
-          // OTP API worked
+          // Fast2SMS API worked
           res.json({ success: true, message: "OTP sent successfully" });
         } else if (responseData && responseData.status_code === 996) {
-          // OTP API needs website verification
+          // API needs website verification
           console.log("Website verification required. Falling back to development mode.");
           
           // Return success with dev info
