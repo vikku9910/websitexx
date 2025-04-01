@@ -41,7 +41,15 @@ const adSchema = z.object({
   category: z.string().min(1, "Category is required"),
   contactNumber: z.string().min(1, "Contact number is required"),
   contactEmail: z.string().email("Please enter a valid email address"),
-  photos: z.any()
+  photos: z.any(),
+  gender: z.string().optional(),
+  age: z.string().optional(),
+  nationality: z.string().optional(),
+  eyeColor: z.string().optional(),
+  hairColor: z.string().optional(),
+  height: z.string().optional(),
+  weight: z.string().optional(),
+  services: z.array(z.string()).optional()
 });
 
 type AdFormValues = z.infer<typeof adSchema>;
@@ -74,7 +82,15 @@ export default function EditAdPage() {
       location: "",
       category: "",
       contactNumber: "",
-      contactEmail: ""
+      contactEmail: "",
+      gender: "",
+      age: "",
+      nationality: "",
+      eyeColor: "",
+      hairColor: "",
+      height: "",
+      weight: "",
+      services: []
     },
   });
 
@@ -102,7 +118,16 @@ export default function EditAdPage() {
           location: data.location,
           category: data.category,
           contactNumber: data.contactNumber,
-          contactEmail: data.contactEmail
+          contactEmail: data.contactEmail,
+          // Add additional fields from our data
+          age: data.age || "",
+          gender: data.gender || "",
+          nationality: data.nationality || "",
+          eyeColor: data.eyeColor || "",
+          hairColor: data.hairColor || "",
+          height: data.height || "",
+          weight: data.weight || "",
+          services: data.services ? data.services.split(",").map((s: string) => s.trim()) : []
         });
         
         // Set existing photos
@@ -229,7 +254,16 @@ export default function EditAdPage() {
         location: data.location,
         category: data.category,
         contactNumber: data.contactNumber,
-        contactEmail: data.contactEmail
+        contactEmail: data.contactEmail,
+        // Include additional fields
+        age: data.age,
+        gender: data.gender,
+        nationality: data.nationality,
+        eyeColor: data.eyeColor,
+        hairColor: data.hairColor,
+        height: data.height,
+        weight: data.weight,
+        services: data.services ? data.services.join(", ") : ""
       };
       
       // If new files are selected, convert them to base64 and merge with existing photos
@@ -576,6 +610,273 @@ export default function EditAdPage() {
                 <li>Upload clear, high-quality photos of the actual item or service</li>
                 <li>Ensure your contact information is current and accurate</li>
               </ol>
+            </div>
+          </div>
+
+          {/* Profile Information Section */}
+          <div className="border-t border-gray-200 pt-6 mb-6">
+            <h3 className="text-lg font-medium text-gray-800 mb-4">Profile Information</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <label htmlFor="gender" className="block text-gray-700 text-sm mb-2">
+                  Gender
+                </label>
+                <select
+                  id="gender"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4ebb78]"
+                  {...register("gender")}
+                >
+                  <option value="">Select Gender</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              
+              <div>
+                <label htmlFor="age" className="block text-gray-700 text-sm mb-2">
+                  Age
+                </label>
+                <input
+                  type="text"
+                  id="age"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4ebb78]"
+                  {...register("age")}
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <label htmlFor="nationality" className="block text-gray-700 text-sm mb-2">
+                  Nationality
+                </label>
+                <input
+                  type="text"
+                  id="nationality"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4ebb78]"
+                  {...register("nationality")}
+                />
+              </div>
+              
+              <div>
+                <label htmlFor="eyeColor" className="block text-gray-700 text-sm mb-2">
+                  Eye Color
+                </label>
+                <input
+                  type="text"
+                  id="eyeColor"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4ebb78]"
+                  {...register("eyeColor")}
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <label htmlFor="hairColor" className="block text-gray-700 text-sm mb-2">
+                  Hair Color
+                </label>
+                <input
+                  type="text"
+                  id="hairColor"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4ebb78]"
+                  {...register("hairColor")}
+                />
+              </div>
+              
+              <div>
+                <label htmlFor="height" className="block text-gray-700 text-sm mb-2">
+                  Height
+                </label>
+                <input
+                  type="text"
+                  id="height"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4ebb78]"
+                  {...register("height")}
+                />
+              </div>
+            </div>
+            
+            <div className="mb-4">
+              <label htmlFor="weight" className="block text-gray-700 text-sm mb-2">
+                Weight
+              </label>
+              <input
+                type="text"
+                id="weight"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4ebb78]"
+                {...register("weight")}
+              />
+            </div>
+            
+            <div className="mb-4">
+              <label className="block text-gray-700 text-sm mb-2">
+                Services Offered
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="flex items-center">
+                  <input 
+                    type="checkbox" 
+                    id="service1" 
+                    className="mr-2"
+                    value="69 Position"
+                    {...register("services")}
+                  />
+                  <label htmlFor="service1">69 Position</label>
+                </div>
+                <div className="flex items-center">
+                  <input 
+                    type="checkbox" 
+                    id="service2" 
+                    className="mr-2"
+                    value="French Kissing"
+                    {...register("services")}
+                  />
+                  <label htmlFor="service2">French Kissing</label>
+                </div>
+                <div className="flex items-center">
+                  <input 
+                    type="checkbox" 
+                    id="service3" 
+                    className="mr-2"
+                    value="Kissing"
+                    {...register("services")}
+                  />
+                  <label htmlFor="service3">Kissing</label>
+                </div>
+                <div className="flex items-center">
+                  <input 
+                    type="checkbox" 
+                    id="service4" 
+                    className="mr-2"
+                    value="Cum on Face"
+                    {...register("services")}
+                  />
+                  <label htmlFor="service4">Cum on Face</label>
+                </div>
+                <div className="flex items-center">
+                  <input 
+                    type="checkbox" 
+                    id="service5" 
+                    className="mr-2"
+                    value="Handjob"
+                    {...register("services")}
+                  />
+                  <label htmlFor="service5">Handjob</label>
+                </div>
+                <div className="flex items-center">
+                  <input 
+                    type="checkbox" 
+                    id="service6" 
+                    className="mr-2"
+                    value="Cum in Mouth"
+                    {...register("services")}
+                  />
+                  <label htmlFor="service6">Cum in Mouth</label>
+                </div>
+                <div className="flex items-center">
+                  <input 
+                    type="checkbox" 
+                    id="service7" 
+                    className="mr-2"
+                    value="Swallow"
+                    {...register("services")}
+                  />
+                  <label htmlFor="service7">Swallow</label>
+                </div>
+                <div className="flex items-center">
+                  <input 
+                    type="checkbox" 
+                    id="service8" 
+                    className="mr-2"
+                    value="Deep Throat"
+                    {...register("services")}
+                  />
+                  <label htmlFor="service8">Deep Throat</label>
+                </div>
+                <div className="flex items-center">
+                  <input 
+                    type="checkbox" 
+                    id="service9" 
+                    className="mr-2"
+                    value="Ball Sucking"
+                    {...register("services")}
+                  />
+                  <label htmlFor="service9">Ball Sucking</label>
+                </div>
+                <div className="flex items-center">
+                  <input 
+                    type="checkbox" 
+                    id="service10" 
+                    className="mr-2"
+                    value="Anal"
+                    {...register("services")}
+                  />
+                  <label htmlFor="service10">Anal</label>
+                </div>
+                <div className="flex items-center">
+                  <input 
+                    type="checkbox" 
+                    id="service11" 
+                    className="mr-2"
+                    value="Rimming"
+                    {...register("services")}
+                  />
+                  <label htmlFor="service11">Rimming</label>
+                </div>
+                <div className="flex items-center">
+                  <input 
+                    type="checkbox" 
+                    id="service12" 
+                    className="mr-2"
+                    value="Doggy"
+                    {...register("services")}
+                  />
+                  <label htmlFor="service12">Doggy</label>
+                </div>
+                <div className="flex items-center">
+                  <input 
+                    type="checkbox" 
+                    id="service13" 
+                    className="mr-2"
+                    value="Couples"
+                    {...register("services")}
+                  />
+                  <label htmlFor="service13">Couples</label>
+                </div>
+                <div className="flex items-center">
+                  <input 
+                    type="checkbox" 
+                    id="service14" 
+                    className="mr-2"
+                    value="Massage"
+                    {...register("services")}
+                  />
+                  <label htmlFor="service14">Massage</label>
+                </div>
+                <div className="flex items-center">
+                  <input 
+                    type="checkbox" 
+                    id="service15" 
+                    className="mr-2"
+                    value="Body to Body"
+                    {...register("services")}
+                  />
+                  <label htmlFor="service15">Body to Body</label>
+                </div>
+                <div className="flex items-center">
+                  <input 
+                    type="checkbox" 
+                    id="service16" 
+                    className="mr-2"
+                    value="Strip Tease"
+                    {...register("services")}
+                  />
+                  <label htmlFor="service16">Strip Tease</label>
+                </div>
+              </div>
             </div>
           </div>
           

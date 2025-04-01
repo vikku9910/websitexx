@@ -794,10 +794,10 @@ export default function PostAdPage() {
                   type="checkbox" 
                   id="service8" 
                   className="mr-2"
-                  value="Sex in Different Positions"
+                  value="Sex in Diferent Positions"
                   {...register("services")}
                 />
-                <label htmlFor="service8">Sex in Different Positions</label>
+                <label htmlFor="service8">Sex in Diferent Positions</label>
               </div>
             </div>
           </div>
