@@ -5,7 +5,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useState, useRef } from "react";
 import { AlertCircle, Home } from "lucide-react";
 import { Link } from "wouter";
-import { locations } from "@/data/locations";
 import MobileVerification from "@/components/MobileVerification";
 import AdPromotion from "@/components/AdPromotion";
 import { useAuth } from "@/hooks/use-auth";
@@ -16,34 +15,25 @@ const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/web
 const MIN_PHOTOS = 2;
 const MAX_PHOTOS = 5;
 
-// Function to validate minimum word count
-const validateWordCount = (text: string, minWords: number, fieldName: string) => {
-  const words = text.trim().split(/\s+/);
-  return words.length >= minWords || `${fieldName} must contain at least ${minWords} words`;
-};
-
 const adSchema = z.object({
-  title: z.string()
-    .min(1, "Title is required")
-    .refine(
-      (value) => validateWordCount(value, 10, "Title") === true,
-      {
-        message: "Title must contain at least 10 words"
-      }
-    ),
-  description: z.string()
-    .min(10, "Description must be at least 10 characters")
-    .refine(
-      (value) => validateWordCount(value, 50, "Description") === true,
-      {
-        message: "Description must contain at least 50 words"
-      }
-    ),
-  location: z.string().min(1, "Location is required"),
+  state: z.string().min(1, "State is required"),
+  city: z.string().min(1, "City is required"),
   category: z.string().min(1, "Category is required"),
-  contactNumber: z.string().min(1, "Contact number is required"),
-  contactEmail: z.string().email("Please enter a valid email address"),
-  photos: z.any()
+  title: z.string().min(1, "Title is required"),
+  description: z.string().min(10, "Description must be at least 10 characters"),
+  mobileNumber: z.string().min(1, "Mobile number is required"),
+  gender: z.string().optional(),
+  age: z.string().optional(),
+  nationality: z.string().optional(),
+  eyeColor: z.string().optional(),
+  hairColor: z.string().optional(),
+  height: z.string().optional(),
+  weight: z.string().optional(),
+  services: z.array(z.string()).optional(),
+  photos: z.any(),
+  agreeTerms: z.boolean().refine(val => val === true, {
+    message: "You must agree to the terms and conditions",
+  }),
 });
 
 type AdFormValues = z.infer<typeof adSchema>;
@@ -73,12 +63,21 @@ export default function PostAdPage() {
   } = useForm<AdFormValues>({
     resolver: zodResolver(adSchema),
     defaultValues: {
+      state: "",
+      city: "",
+      category: "",
       title: "",
       description: "",
-      location: "",
-      category: "",
-      contactNumber: "",
-      contactEmail: "",
+      mobileNumber: "",
+      gender: "",
+      age: "",
+      nationality: "",
+      eyeColor: "",
+      hairColor: "",
+      height: "",
+      weight: "",
+      services: [],
+      agreeTerms: false,
     },
   });
 
@@ -234,12 +233,21 @@ export default function PostAdPage() {
       const adData = {
         title: formData.formValues.title,
         description: formData.formValues.description,
-        location: formData.formValues.location,
+        location: formData.formValues.state + " - " + formData.formValues.city,
         category: formData.formValues.category,
-        contactNumber: formData.formValues.contactNumber,
-        contactEmail: formData.formValues.contactEmail,
+        contactNumber: formData.formValues.mobileNumber,
+        contactEmail: user?.username || "",
         photoUrls: formData.photoUrls,
-        isVerified: true // Set to true as mobile is now verified
+        isVerified: true, // Set to true as mobile is now verified
+        // Add additional fields from our new form
+        age: formData.formValues.age,
+        gender: formData.formValues.gender,
+        nationality: formData.formValues.nationality,
+        eyeColor: formData.formValues.eyeColor,
+        hairColor: formData.formValues.hairColor,
+        height: formData.formValues.height,
+        weight: formData.formValues.weight,
+        services: formData.formValues.services?.join(", ") || "",
       };
       
       // Make API call to save the ad
@@ -294,12 +302,21 @@ export default function PostAdPage() {
       const adData = {
         title: formData.formValues.title,
         description: formData.formValues.description,
-        location: formData.formValues.location,
+        location: formData.formValues.state + " - " + formData.formValues.city,
         category: formData.formValues.category,
-        contactNumber: formData.formValues.contactNumber,
-        contactEmail: formData.formValues.contactEmail,
+        contactNumber: formData.formValues.mobileNumber,
+        contactEmail: user?.username || "",
         photoUrls: formData.photoUrls,
-        isVerified: false // Set to false as mobile verification was skipped
+        isVerified: false, // Set to false as mobile verification was skipped
+        // Add additional fields from our new form
+        age: formData.formValues.age,
+        gender: formData.formValues.gender,
+        nationality: formData.formValues.nationality,
+        eyeColor: formData.formValues.eyeColor,
+        hairColor: formData.formValues.hairColor,
+        height: formData.formValues.height,
+        weight: formData.formValues.weight,
+        services: formData.formValues.services?.join(", ") || "",
       };
       
       // Make API call to save the ad
@@ -423,7 +440,7 @@ export default function PostAdPage() {
             <Home className="h-5 w-5 mr-1" />
             <span>Home</span>
           </Link>
-          <h1 className="text-2xl font-semibold text-gray-800 text-center flex-1">Post Your Ad</h1>
+          <h1 className="text-2xl font-semibold text-gray-800 text-center flex-1">Post Your Ad Here</h1>
           <div className="w-20"></div> {/* This empty div helps balance the layout */}
         </div>
         
@@ -432,7 +449,7 @@ export default function PostAdPage() {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-6 max-w-md w-full">
               <MobileVerification 
-                mobileNumber={formData.formValues?.contactNumber || ""}
+                mobileNumber={formData.formValues?.mobileNumber || ""}
                 onVerificationComplete={handleVerificationComplete}
                 onSkip={handleSkipVerification}
               />
@@ -467,12 +484,73 @@ export default function PostAdPage() {
         )}
         
         <form 
-          className="bg-white rounded-md shadow p-6"
+          className="bg-white p-6"
           onSubmit={handleSubmit(onSubmit)}
         >
           <div className="mb-4">
+            <label htmlFor="state" className="block text-gray-700 text-sm mb-2">
+              State*
+            </label>
+            <select
+              id="state"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4ebb78]"
+              {...register("state")}
+            >
+              <option value="">Select State</option>
+              <option value="Mumbai">Mumbai</option>
+              <option value="Delhi">Delhi</option>
+              <option value="Bangalore">Bangalore</option>
+              <option value="Chennai">Chennai</option>
+              <option value="Hyderabad">Hyderabad</option>
+            </select>
+            {errors.state && (
+              <p className="text-red-500 text-xs mt-1">{errors.state.message}</p>
+            )}
+          </div>
+          
+          <div className="mb-4">
+            <label htmlFor="city" className="block text-gray-700 text-sm mb-2">
+              City*
+            </label>
+            <select
+              id="city"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4ebb78]"
+              {...register("city")}
+            >
+              <option value="">Select City</option>
+              <option value="Borivali">Borivali</option>
+              <option value="Andheri">Andheri</option>
+              <option value="Bandra">Bandra</option>
+              <option value="Juhu">Juhu</option>
+              <option value="Dadar">Dadar</option>
+            </select>
+            {errors.city && (
+              <p className="text-red-500 text-xs mt-1">{errors.city.message}</p>
+            )}
+          </div>
+          
+          <div className="mb-4">
+            <label htmlFor="category" className="block text-gray-700 text-sm mb-2">
+              Category*
+            </label>
+            <select
+              id="category"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4ebb78]"
+              {...register("category")}
+            >
+              <option value="">Select Category</option>
+              <option value="Call Girl">Call Girl</option>
+              <option value="Escort">Escort</option>
+              <option value="Massage">Massage</option>
+            </select>
+            {errors.category && (
+              <p className="text-red-500 text-xs mt-1">{errors.category.message}</p>
+            )}
+          </div>
+          
+          <div className="mb-4">
             <label htmlFor="title" className="block text-gray-700 text-sm mb-2">
-              Ad Title*
+              Title*
             </label>
             <input
               type="text"
@@ -483,6 +561,7 @@ export default function PostAdPage() {
             {errors.title && (
               <p className="text-red-500 text-xs mt-1">{errors.title.message}</p>
             )}
+            {!errors.title && <p className="text-red-500 text-xs mt-1">Please enter title</p>}
           </div>
           
           <div className="mb-4">
@@ -498,92 +577,213 @@ export default function PostAdPage() {
             {errors.description && (
               <p className="text-red-500 text-xs mt-1">{errors.description.message}</p>
             )}
+            {!errors.description && <p className="text-red-500 text-xs mt-1">Please enter description</p>}
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div>
-              <label htmlFor="location" className="block text-gray-700 text-sm mb-2">
-                Location*
-              </label>
-              <select
-                id="location"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4ebb78] max-h-60 overflow-y-auto"
-                {...register("location")}
-              >
-                <option value="">Select Location</option>
-                {locations.map((location) => (
-                  <option key={location.id} value={location.name.toLowerCase()}>
-                    {location.name}
-                  </option>
-                ))}
-              </select>
-              {errors.location && (
-                <p className="text-red-500 text-xs mt-1">{errors.location.message}</p>
-              )}
-            </div>
-            
-            <div>
-              <label htmlFor="category" className="block text-gray-700 text-sm mb-2">
-                Category*
-              </label>
-              <select
-                id="category"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4ebb78]"
-                {...register("category")}
-              >
-                <option value="">Select Category</option>
-                <option value="services">Services</option>
-                <option value="real-estate">Real Estate</option>
-                <option value="jobs">Jobs</option>
-                <option value="electronics">Electronics</option>
-                <option value="vehicles">Vehicles</option>
-                <option value="furniture">Furniture</option>
-                <option value="fashion">Fashion</option>
-                <option value="education">Education</option>
-                <option value="pets">Pets</option>
-                <option value="others">Others</option>
-              </select>
-              {errors.category && (
-                <p className="text-red-500 text-xs mt-1">{errors.category.message}</p>
-              )}
-            </div>
+          <div className="mb-4">
+            <label htmlFor="mobileNumber" className="block text-gray-700 text-sm mb-2">
+              Mobile Number*
+            </label>
+            <input
+              type="tel"
+              id="mobileNumber"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4ebb78]"
+              {...register("mobileNumber")}
+            />
+            {errors.mobileNumber && (
+              <p className="text-red-500 text-xs mt-1">{errors.mobileNumber.message}</p>
+            )}
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <div>
-              <label htmlFor="contactNumber" className="block text-gray-700 text-sm mb-2">
-                Contact Number*
-              </label>
-              <input
-                type="tel"
-                id="contactNumber"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4ebb78]"
-                {...register("contactNumber")}
-              />
-              {errors.contactNumber && (
-                <p className="text-red-500 text-xs mt-1">{errors.contactNumber.message}</p>
-              )}
-            </div>
-            
-            <div>
-              <label htmlFor="contactEmail" className="block text-gray-700 text-sm mb-2">
-                Contact Email*
-              </label>
-              <input
-                type="email"
-                id="contactEmail"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4ebb78]"
-                {...register("contactEmail")}
-              />
-              {errors.contactEmail && (
-                <p className="text-red-500 text-xs mt-1">{errors.contactEmail.message}</p>
-              )}
+          <div className="mb-4">
+            <label htmlFor="gender" className="block text-gray-700 text-sm mb-2">
+              Gender
+            </label>
+            <select
+              id="gender"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4ebb78]"
+              {...register("gender")}
+            >
+              <option value="">Please select gender</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+            {errors.gender && (
+              <p className="text-red-500 text-xs mt-1">{errors.gender.message}</p>
+            )}
+          </div>
+          
+          <div className="mb-4">
+            <label htmlFor="age" className="block text-gray-700 text-sm mb-2">
+              Age
+            </label>
+            <input
+              type="text"
+              id="age"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4ebb78]"
+              {...register("age")}
+            />
+          </div>
+          
+          <div className="mb-4">
+            <label htmlFor="nationality" className="block text-gray-700 text-sm mb-2">
+              Nationality
+            </label>
+            <select
+              id="nationality"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4ebb78]"
+              {...register("nationality")}
+            >
+              <option value="">Please select nationality</option>
+              <option value="Indian">Indian</option>
+              <option value="American">American</option>
+              <option value="British">British</option>
+              <option value="Canadian">Canadian</option>
+              <option value="Australian">Australian</option>
+              <option value="Russian">Russian</option>
+            </select>
+          </div>
+          
+          <div className="mb-4">
+            <label htmlFor="eyeColor" className="block text-gray-700 text-sm mb-2">
+              Eye Color
+            </label>
+            <input
+              type="text"
+              id="eyeColor"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4ebb78]"
+              {...register("eyeColor")}
+            />
+          </div>
+          
+          <div className="mb-4">
+            <label htmlFor="hairColor" className="block text-gray-700 text-sm mb-2">
+              Hair Color
+            </label>
+            <input
+              type="text"
+              id="hairColor"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4ebb78]"
+              {...register("hairColor")}
+            />
+          </div>
+          
+          <div className="mb-4">
+            <label htmlFor="height" className="block text-gray-700 text-sm mb-2">
+              Height
+            </label>
+            <input
+              type="text"
+              id="height"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4ebb78]"
+              {...register("height")}
+            />
+          </div>
+          
+          <div className="mb-4">
+            <label htmlFor="weight" className="block text-gray-700 text-sm mb-2">
+              Weight
+            </label>
+            <input
+              type="text"
+              id="weight"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4ebb78]"
+              {...register("weight")}
+            />
+          </div>
+          
+          <div className="mb-4">
+            <label className="block text-gray-700 text-sm mb-2">
+              Services
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="flex items-center">
+                <input 
+                  type="checkbox" 
+                  id="service1" 
+                  className="mr-2"
+                  value="69 Position"
+                  {...register("services")}
+                />
+                <label htmlFor="service1">69 Position</label>
+              </div>
+              <div className="flex items-center">
+                <input 
+                  type="checkbox" 
+                  id="service2" 
+                  className="mr-2"
+                  value="French Kissing"
+                  {...register("services")}
+                />
+                <label htmlFor="service2">French Kissing</label>
+              </div>
+              <div className="flex items-center">
+                <input 
+                  type="checkbox" 
+                  id="service3" 
+                  className="mr-2"
+                  value="Kissing"
+                  {...register("services")}
+                />
+                <label htmlFor="service3">Kissing</label>
+              </div>
+              <div className="flex items-center">
+                <input 
+                  type="checkbox" 
+                  id="service4" 
+                  className="mr-2"
+                  value="Cum on Face"
+                  {...register("services")}
+                />
+                <label htmlFor="service4">Cum on Face</label>
+              </div>
+              <div className="flex items-center">
+                <input 
+                  type="checkbox" 
+                  id="service5" 
+                  className="mr-2"
+                  value="Handjob"
+                  {...register("services")}
+                />
+                <label htmlFor="service5">Handjob</label>
+              </div>
+              <div className="flex items-center">
+                <input 
+                  type="checkbox" 
+                  id="service6" 
+                  className="mr-2"
+                  value="Cum in Mouth"
+                  {...register("services")}
+                />
+                <label htmlFor="service6">Cum in Mouth</label>
+              </div>
+              <div className="flex items-center">
+                <input 
+                  type="checkbox" 
+                  id="service7" 
+                  className="mr-2"
+                  value="Girlfriend Experience"
+                  {...register("services")}
+                />
+                <label htmlFor="service7">Girlfriend Experience</label>
+              </div>
+              <div className="flex items-center">
+                <input 
+                  type="checkbox" 
+                  id="service8" 
+                  className="mr-2"
+                  value="Sex in Different Positions"
+                  {...register("services")}
+                />
+                <label htmlFor="service8">Sex in Different Positions</label>
+              </div>
             </div>
           </div>
           
           <div className="mb-6">
             <label htmlFor="photos" className="block text-gray-700 text-sm mb-2">
-              Photos* <span className="text-xs text-gray-500">(Upload {MIN_PHOTOS}-{MAX_PHOTOS} photos)</span>
+              Photos
             </label>
             <div className="relative">
               <input
@@ -591,13 +791,11 @@ export default function PostAdPage() {
                 id="photos"
                 multiple
                 accept=".jpg,.jpeg,.png,.webp"
-                className={`w-full px-3 py-2 border ${previewUrls.length === 0 ? 'border-red-300' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-1 focus:ring-[#4ebb78]`}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4ebb78]"
                 onChange={handleFileChange}
                 ref={fileInputRef}
               />
-              {previewUrls.length === 0 && (
-                <p className="text-red-500 text-xs mt-1">{MIN_PHOTOS}-{MAX_PHOTOS} photos are required</p>
-              )}
+              <p className="text-red-500 text-xs mt-1">No file chosen</p>
             </div>
             
             {/* Image Preview Section */}
@@ -618,44 +816,34 @@ export default function PostAdPage() {
                     </div>
                   ))}
                 </div>
-                <div className="mt-2 flex items-center text-xs text-gray-700">
-                  <span className={previewUrls.length < MIN_PHOTOS ? "text-red-500" : "text-green-500"}>
-                    {previewUrls.length} of {MIN_PHOTOS}-{MAX_PHOTOS} photos selected
-                  </span>
-                  {previewUrls.length >= MIN_PHOTOS && previewUrls.length <= MAX_PHOTOS && (
-                    <span className="ml-2 text-green-500 flex items-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      OK
-                    </span>
-                  )}
-                </div>
               </div>
             )}
-            
-            <div className="mt-2 text-xs text-gray-600">
-              <p className="font-semibold">Please note the following rules:</p>
-              <ol className="list-decimal pl-5 mt-1 space-y-1">
-                <li>Provide accurate and detailed information about your listing</li>
-                <li>Do not use offensive language or post prohibited items</li>
-                <li>Upload clear, high-quality photos (JPG, PNG, or WebP format)</li>
-                <li>Maximum file size: 5MB per photo</li>
-                <li>Include {MIN_PHOTOS}-{MAX_PHOTOS} photos to give a complete view of your item</li>
-              </ol>
-            </div>
           </div>
           
-          <div className="border-t pt-4">
+          <div className="mb-4">
+            <div className="flex items-center">
+              <input 
+                type="checkbox" 
+                id="agreeTerms" 
+                className="mr-2"
+                {...register("agreeTerms")}
+              />
+              <label htmlFor="agreeTerms" className="text-sm">
+                I confirm that I am an independent escort or I am posting this advert on behalf of an independent escort. Also I agree to the <Link to="/terms" className="text-blue-500 hover:underline">Terms and Conditions</Link> and <Link to="/guidelines" className="text-blue-500 hover:underline">Advert Guidelines</Link>
+              </label>
+            </div>
+            {errors.agreeTerms && (
+              <p className="text-red-500 text-xs mt-1">{errors.agreeTerms.message}</p>
+            )}
+          </div>
+          
+          <div className="pt-4">
             <button
               type="submit"
-              className="w-full bg-[#4ebb78] hover:bg-[#3da967] text-white py-2 px-4 rounded-md transition-colors"
+              className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded transition-colors"
             >
-              Post Ad
+              Request Your Ad
             </button>
-            <p className="mt-3 text-gray-500 text-xs text-center">
-              By posting this ad, you agree to our <Link href="/terms" className="text-[#4ebb78] hover:underline">Terms of Service</Link> and <Link href="/privacy" className="text-[#4ebb78] hover:underline">Privacy Policy</Link>
-            </p>
           </div>
         </form>
       </div>
